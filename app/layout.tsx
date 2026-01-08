@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
 import "./globals.css";
+import Header from "@/components/common/header";
+import Footer from "@/components/common/footer";
 
 const fontSans = FontSans({
   variable: "--font-sans",
@@ -23,7 +25,11 @@ export default function RootLayout({
       <body
         className={`${fontSans.variable} antialiased`}
       >
-        {children}
+        <div className="relative flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1">{children}</main>
+        <Footer />
+        </div>
       </body>
     </html>
   );
