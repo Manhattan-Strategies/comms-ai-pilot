@@ -3,6 +3,7 @@ import { Inter as FontSans } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/common/header";
 import Footer from "@/components/common/footer";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const fontSans = FontSans({
   variable: "--font-sans",
@@ -12,7 +13,8 @@ const fontSans = FontSans({
 
 export const metadata: Metadata = {
   title: "Manhattan AI Pilot",
-  description: "Manhattan AI Pilot is an application to support MHTN Communications team with their AI needs internally.",
+  description:
+    "Manhattan AI Pilot is an application to support MHTN Communications team with their AI needs internally.",
 };
 
 export default function RootLayout({
@@ -21,16 +23,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${fontSans.variable} antialiased`}
-      >
-        <div className="relative flex min-h-screen flex-col">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        </div>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={`${fontSans.variable} antialiased`}>
+          <div className="relative flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
