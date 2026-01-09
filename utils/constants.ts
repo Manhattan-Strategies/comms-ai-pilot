@@ -3,10 +3,10 @@ import type { Variants } from "motion/react";
 export const pricingPlans = [
   {
     name: "Basic",
-    price: 49,
+    price: 2,
     description: "Perfect for occasional use",
     items: [
-      "5 PDF summaries per month",
+      "5 PDF queries per month",
       "Standard processing speed",
       "Email support",
     ],
@@ -16,10 +16,10 @@ export const pricingPlans = [
   },
   {
     name: "Pro",
-    price: 129,
+    price: 5,
     description: "For professionals and teams",
     items: [
-      "Unlimited PDF summaries",
+      "Unlimited queries",
       "Priority processing",
       "24/7 priority support",
       "Markdown Export",
