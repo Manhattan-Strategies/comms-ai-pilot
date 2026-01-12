@@ -6,13 +6,13 @@ export const pricingPlans = [
     price: 2,
     description: "Perfect for occasional use",
     items: [
-      "5 PDF queries per month",
+      "5 queries per month",
       "Standard processing speed",
       "Email support",
     ],
     id: "basic",
-    paymentLink: "https://buy.stripe.com/test_3cscMQcF8548gz6cMM",
-    priceId: "price_1RA9yVCTlpmJdURCo5eDA5T5",
+    paymentLink: "#",
+    // priceId: "price_1RA9yVCTlpmJdURCo5eDA5T5",
   },
   {
     name: "Pro",
@@ -25,8 +25,8 @@ export const pricingPlans = [
       "Markdown Export",
     ],
     id: "pro",
-    paymentLink: "https://buy.stripe.com/test_28o7sw7kO7cg6Yw7st",
-    priceId: "price_1RA9yVCTlpmJdURCk8Oi1pwO",
+    paymentLink: "#",
+    // priceId: "price_1RA9yVCTlpmJdURCk8Oi1pwO",
   },
 ];
 
