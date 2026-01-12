@@ -44,7 +44,7 @@ const PricingCard = ({
       <div
         className={cn(
           "relative flex flex-col h-full gap-4 lg:gap-8 z-10 p-8 border-[1px] border-gray-500/20 rounded-2xl",
-          id === "pro" && "border-rose-500 gap-5 border-2"
+          id === "pro" && "border-blue-500 gap-5 border-2"
         )}
       >
         <MotionDiv
@@ -86,10 +86,10 @@ const PricingCard = ({
           <Link
             href={paymentLink}
             className={cn(
-              "w-full rounded-full flex items-center justify-center gap-2 bg-linear-to-r from-rose-800 to-rose-500 hover:from-rose-500 hover:to-rose-800 text-white border-2 py-2",
+              "w-full rounded-full flex items-center justify-center gap-2 bg-linear-to-r from-blue-800 to-blue-500 hover:from-blue-500 hover:to-blue-800 text-white border-2 py-2",
               id === "pro"
-                ? "border-rose-900"
-                : "border-rose-100 from-rose-400 to-rose-500"
+                ? "border-blue-900"
+                : "border-blue-100 from-blue-400 to-blue-500"
             )}
           >
             Buy Now <ArrowRight size={18} />
@@ -115,7 +115,7 @@ export default function PricingSection() {
           variants={itemVariants}
           className="flex items-center justify-center w-full pb-12"
         >
-          <h2 className="uppercase font-bold text-xl mb-8 text-rose-500">
+          <h2 className="uppercase font-bold text-xl mb-8 text-blue-500">
             Pricing
           </h2>
         </MotionDiv>

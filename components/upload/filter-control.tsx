@@ -1,4 +1,3 @@
-// components/upload/filter-controls.tsx
 "use client";
 
 import { FilterState } from "@/types/filters";
@@ -58,9 +57,9 @@ export default function FilterControls({
     ],
     platform: [
       { id: "linkedin", label: "LinkedIn" },
+      { id: "twitter", label: "Twitter/X" },
       { id: "internal_update", label: "Internal Update" },
       { id: "product_announcement", label: "Product Announcement" },
-      { id: "twitter", label: "Twitter/X" },
     ],
   };
 

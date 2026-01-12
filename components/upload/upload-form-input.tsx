@@ -24,7 +24,7 @@ const UploadFormInput = forwardRef<HTMLFormElement, UploadFormInputProps>(
             className={cn(isLoading && "opacity-50 cursor-not-allowed")}
             disabled={isLoading}
           />
-          <Button disabled={isLoading}>
+          <Button disabled={isLoading} className="bg-blue-600">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PostsDisplay } from "./posts-display";
-import FilterControls from "@/app/(logged-in)/upload/filter-control";
+import FilterControls from "@/components/upload/filter-control";
 import type { FilterState } from "@/types/filters";
 
 // Schema with zod
@@ -80,7 +80,7 @@ export default function UploadForm() {
         const error = validationResult.error.errors[0];
         toast("Invalid file", {
           description: error.message,
-          style: { color: "red" },
+          style: { color: "blue" },
         });
         setIsLoading(false);
         return;
