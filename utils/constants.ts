@@ -12,7 +12,7 @@ export const pricingPlans = [
     ],
     id: "basic",
     paymentLink: "#",
-    // priceId: "price_1RA9yVCTlpmJdURCo5eDA5T5",
+    priceId: "price_1RA9yVCTlpmJdURCo5eDA5T5",
   },
   {
     name: "Pro",
@@ -26,7 +26,7 @@ export const pricingPlans = [
     ],
     id: "pro",
     paymentLink: "#",
-    // priceId: "price_1RA9yVCTlpmJdURCk8Oi1pwO",
+    priceId: "price_1RA9yVCTlpmJdURCk8Oi1pwO",
   },
 ];
 
