@@ -36,7 +36,6 @@ export default function UploadHeader() {
         className="mt-2 text-lg leading-8 text-gray-600 max-w-2xl text-center"
       >
         {" "}
-        <p>Upload your PDF</p>
       </MotionDiv>
     </div>
   );
