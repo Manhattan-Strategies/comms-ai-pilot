@@ -68,7 +68,7 @@ export default function UploadForm() {
       const file = formData.get("file") as File;
       console.log("File selected:", file.name, "Size:", file.size);
 
-      // ... rest of validation code ...
+      // Validation
 
       console.log("Starting file upload to UploadThing...");
       const uploadResponse = await startUpload([file]);
