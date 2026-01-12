@@ -1,21 +1,9 @@
 "use server";
 
 import { generateSummaryFromGemini } from "@/lib/gemini-ai";
-// import { getDbConnection } from "@/lib/db";
-// import { generateSummaryFromGemini } from "@/lib/gemini-ai";
 import { fetchAndExtractPdfText } from "@/lib/langchain";
 import { generateSummaryFromOpenAI } from "@/lib/openai";
-// import { formatFileNameAsTitle } from "@/utils/format-utils";
-import { auth } from "@clerk/nextjs/server";
-import { revalidatePath } from "next/cache";
-
-interface PdfSummaryType {
-  userId?: string;
-  fileUrl: string;
-  summary: string;
-  title: string;
-  fileName: string;
-}
+import { formatFileNameAsTitle } from "@/utils/format-utils";
 
 export async function generatePdfSummary({
   fileUrl,
@@ -27,148 +15,100 @@ export async function generatePdfSummary({
   if (!fileUrl) {
     return {
       success: false,
-      message: "File upload failed",
-      data: null,
-    };
-  }
-
-  if (!fileUrl) {
-    return {
-      success: false,
-      message: "File upload failed",
+      message: "File upload failed - No file URL provided",
       data: null,
     };
   }
 
   try {
+    // Step 1: Extract text from PDF
     const pdfText = await fetchAndExtractPdfText(fileUrl);
-    console.log({ pdfText });
+    console.log("PDF Text extracted, length:", pdfText?.length || 0);
 
-    let summary;
-    try {
-      summary = await generateSummaryFromOpenAI(pdfText);
-      console.log(summary);
-    } catch (error) {
-      console.log("Failed to generate summary", error);
-      //call gemini (backup)
-      if (error instanceof Error && error.message === "RATE_LIMIT_EXCEEDED") {
-        try {
-          summary = await generateSummaryFromGemini(pdfText);
-        } catch (geminiError) {
-          console.error(
-            "Gemini API failed after OpenAI quota exceeded",
-            geminiError
-          );
-          throw new Error(
-            "Failted to generate posts with available AI providers"
-          );
-        }
-      }
-    }
-
-    if (!summary) {
+    if (!pdfText || pdfText.trim().length === 0) {
       return {
         success: false,
-        message: "Failed to generate summary",
+        message:
+          "Failed to extract text from PDF. The file might be empty or unreadable.",
         data: null,
       };
     }
 
-    // const formattedFileName = formatFileNameAsTitle(fileName);
+    let summary: string | undefined;
+
+    // Step 2: Try OpenAI first
+    try {
+      console.log("Attempting to generate summary with OpenAI...");
+      summary = await generateSummaryFromOpenAI(pdfText);
+      console.log("OpenAI summary generated successfully");
+    } catch (openAIError) {
+      console.log("OpenAI failed:", openAIError);
+
+      // If it's a rate limit error, try Gemini
+      if (
+        openAIError instanceof Error &&
+        openAIError.message.includes("RATE_LIMIT")
+      ) {
+        console.log("Rate limit exceeded, trying Gemini as backup...");
+        try {
+          summary = await generateSummaryFromGemini(pdfText);
+          console.log("Gemini summary generated successfully as backup");
+        } catch (geminiError) {
+          console.error("Gemini also failed:", geminiError);
+          throw new Error("Both OpenAI and Gemini failed to generate summary");
+        }
+      } else {
+        // If it's not a rate limit error, re-throw it
+        throw openAIError;
+      }
+    }
+
+    if (!summary || summary.trim().length === 0) {
+      return {
+        success: false,
+        message: "Generated summary is empty",
+        data: null,
+      };
+    }
+
+    // Format the file name as title
+    const formattedFileName = formatFileNameAsTitle(fileName);
 
     return {
       success: true,
       message: "Summary generated successfully",
       data: {
-        // title: formattedFileName,
+        title: formattedFileName,
         summary,
       },
     };
   } catch (error) {
+    console.error("Error in generatePdfSummary:", error);
+
+    // Provide more specific error messages
+    let errorMessage = "Failed to generate summary";
+
+    if (error instanceof Error) {
+      if (error.message.includes("Failed to fetch")) {
+        errorMessage = "Network error: Could not access the PDF file";
+      } else if (error.message.includes("text layer")) {
+        errorMessage =
+          "PDF is scanned or image-based. Please upload a text-based PDF.";
+      } else if (
+        error.message.includes("rate limit") ||
+        error.message.includes("quota")
+      ) {
+        errorMessage =
+          "AI service rate limit exceeded. Please try again later.";
+      } else {
+        errorMessage = `Error: ${error.message}`;
+      }
+    }
+
     return {
       success: false,
-      message: "File upload failed",
+      message: errorMessage,
       data: null,
     };
   }
 }
-
-// async function savePdfSummary({
-//   userId,
-//   fileUrl,
-//   summary,
-//   title,
-//   fileName,
-// }: PdfSummaryType) {
-//   try {
-//     const sql = await getDbConnection();
-
-//     const [savedSummary] = await sql`
-//     INSERT INTO pdf_summaries (
-//       user_id,
-//       original_file_url,
-//       summary_text,
-//       title,
-//       file_name
-//       )VALUES(
-//     ${userId},
-//     ${fileUrl},
-//     ${summary},
-//     ${title},
-//     ${fileName}
-//      )RETURNING id,summary_text`;
-
-//     return savedSummary;
-//   } catch (error) {
-//     console.error("Error saving PDF summary", error);
-//     throw error;
-//   }
-// }
-
-// export async function storePdfSummaryAction({
-//   fileUrl,
-//   summary,
-//   title,
-//   fileName,
-// }: PdfSummaryType) {
-//   let savedSummary: any;
-//   try {
-//     const { userId } = await auth();
-//     if (!userId) {
-//       return {
-//         success: false,
-//         message: "User not found",
-//       };
-//     }
-//     savedSummary = await savePdfSummary({
-//       userId,
-//       fileUrl,
-//       summary,
-//       title,
-//       fileName,
-//     });
-
-//     if (!savedSummary) {
-//       return {
-//         success: false,
-//         message: "Failed to save PDF summary, please try again",
-//       };
-//     }
-//   } catch (error) {
-//     return {
-//       success: false,
-//       message:
-//         error instanceof Error ? error.message : "Error saving PDF summary",
-//     };
-//   }
-
-//   //revalidate our cache
-//   revalidatePath(`/summaries/${savedSummary.id}`);
-//   return {
-//     success: true,
-//     message: "PDF summary saved successfully",
-//     data: {
-//       id: savedSummary.id,
-//     },
-//   };
-// }

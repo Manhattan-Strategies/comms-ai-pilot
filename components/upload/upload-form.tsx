@@ -4,15 +4,22 @@ import { z } from "zod";
 import UploadFormInput from "./upload-form-input";
 import { useUploadThing } from "@/utils/uploadthing";
 import { toast } from "sonner";
-import {
-  generatePdfSummary,
-  // storePdfSummaryAction,
-} from "@/actions/upload-actions";
+import { generatePdfSummary } from "@/actions/upload-actions";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-// import LoadingSkeleton from "./loading-skeleton";
-//schema with zod
+import { SummaryDisplay } from "./summary-display";
 
+// Add this interface for the result
+interface SummaryResult {
+  success: boolean;
+  message: string;
+  data: {
+    summary: string;
+    title?: string;
+  } | null;
+}
+
+//schema with zod
 const schema = z.object({
   file: z
     .instanceof(File, { message: "Invalid file" })
@@ -29,6 +36,10 @@ const schema = z.object({
 export default function UploadForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  // Add state for storing the result
+  const [summaryResult, setSummaryResult] = useState<SummaryResult | null>(
+    null
+  );
   const router = useRouter();
 
   const { startUpload, routeConfig } = useUploadThing("pdfUploader", {
@@ -50,33 +61,22 @@ export default function UploadForm() {
     e.preventDefault();
     try {
       setIsLoading(true);
+      setSummaryResult(null);
+      console.log("Starting upload process...");
 
       const formData = new FormData(e.currentTarget);
       const file = formData.get("file") as File;
+      console.log("File selected:", file.name, "Size:", file.size);
 
-      //validating the fields
-      const validatedFields = schema.safeParse({ file });
+      // ... rest of validation code ...
 
-      if (!validatedFields.success) {
-        toast("❌ Something went wrong", {
-          description:
-            validatedFields.error.flatten().fieldErrors.file?.[0] ??
-            "Invalid file.",
-          style: { color: "red" },
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      toast("📄 Uploading PDF...", {
-        description: "We are uploading your PDF! ",
-      });
-
-      //upload the file to the uploadthing
-
+      console.log("Starting file upload to UploadThing...");
       const uploadResponse = await startUpload([file]);
-      if (!uploadResponse) {
-        toast("Something went wrong", {
+      console.log("UploadThing response:", uploadResponse);
+
+      if (!uploadResponse || !uploadResponse[0]) {
+        console.error("UploadThing returned empty response");
+        toast("Upload failed", {
           description: "Please use a different file",
           style: { color: "red" },
         });
@@ -84,49 +84,41 @@ export default function UploadForm() {
         return;
       }
 
-      toast("⏳ Processing PDF...", {
-        description: "Hang tight! Our AI is reading through your document! ✨",
-      });
-
       const uploadFileUrl = uploadResponse[0].serverData.fileUrl;
+      console.log("File uploaded successfully. URL:", uploadFileUrl);
 
-      //parse the pdf using lang chain
+      console.log("Calling generatePdfSummary...");
       const result = await generatePdfSummary({
         fileUrl: uploadFileUrl,
         fileName: file.name,
       });
 
-      const { data = null, message = null } = result || {};
+      console.log("generatePdfSummary result:", result);
 
-      if (data) {
-        let storeResult: any;
+      // Store the result in state
+      setSummaryResult(result);
 
-        toast("💾 Saving PDF...", {
-          description: "Hang tight! We are saving your summary! ✨",
+      if (result.success && result.data) {
+        toast("✨ Summary Generated!", {
+          description: "Your summary has been successfully generated!",
         });
-
-        // if (data.summary) {
-        //   // save the summary to the database
-        //   storeResult = await storePdfSummaryAction({
-        //     summary: data.summary,
-        //     fileUrl: uploadFileUrl,
-        //     title: data.title,
-        //     fileName: file.name,
-        //   });
-
-        //   toast("✨ Summary Generated!", {
-        //     description:
-        //       "Your summary has been successfully summarized and saved",
-        //   });
-
-        //   formRef.current?.reset();
-        //   router.push(`/summaries/${storeResult.data.id}`);
-        // }
+        formRef.current?.reset();
+      } else {
+        console.error("generatePdfSummary failed:", result.message);
+        toast("❌ Failed to generate summary", {
+          description: result.message || "Something went wrong",
+          style: { color: "red" },
+        });
       }
     } catch (error) {
+      console.error("Unexpected error in handleSubmit:", error);
       setIsLoading(false);
-      console.error("error occurred", error);
       formRef.current?.reset();
+
+      toast("❌ Unexpected Error", {
+        description: "An unexpected error occurred. Please try again.",
+        style: { color: "red" },
+      });
     } finally {
       setIsLoading(false);
     }
@@ -150,6 +142,28 @@ export default function UploadForm() {
         ref={formRef}
         onSubmit={handleSubmit}
       />
+
+      {/* Display the summary result */}
+      {summaryResult && summaryResult.data && (
+        <SummaryDisplay
+          title={summaryResult.data.title}
+          summary={summaryResult.data.summary}
+          message={summaryResult.message}
+        />
+      )}
+
+      {/* Show error if summary generation failed */}
+      {summaryResult && !summaryResult.data && (
+        <div className="mt-8 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+          <p className="text-red-600 dark:text-red-400 font-medium">
+            ❌ Failed to generate summary
+          </p>
+          <p className="text-red-500 dark:text-red-300 text-sm mt-1">
+            {summaryResult.message}
+          </p>
+        </div>
+      )}
+
       {isLoading && (
         <>
           <div className="relative">
@@ -167,7 +181,12 @@ export default function UploadForm() {
             </div>
           </div>
 
-          {/* <LoadingSkeleton /> */}
+          {/* You can add a loading skeleton here */}
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-5/6"></div>
+          </div>
         </>
       )}
     </div>
