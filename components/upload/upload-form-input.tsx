@@ -31,7 +31,7 @@ const UploadFormInput = forwardRef<HTMLFormElement, UploadFormInputProps>(
                 Processing...
               </>
             ) : (
-              "Upload your PDF"
+              "Generate Social Posts"
             )}
           </Button>
         </div>
