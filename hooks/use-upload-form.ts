@@ -16,8 +16,8 @@ export function useUploadForm() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      //   content:
-      //     "Tell me what you want these posts to be about. Include the situation, what you want to emphasize, and what to avoid.",
+      content:
+        "Tell me what you want these posts to be about. Include the situation, what you want to emphasize, and what to avoid.",
     },
   ]);
   const [filters, setFilters] = useState<FilterState>({
