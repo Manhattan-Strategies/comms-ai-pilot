@@ -1,16 +1,19 @@
 "use server";
 
-import { generateSummaryFromGemini } from "@/lib/gemini-ai";
+import { generatePostsFromGemini } from "@/lib/gemini-ai";
 import { fetchAndExtractPdfText } from "@/lib/langchain";
-import { generateSummaryFromOpenAI } from "@/lib/openai";
+import { generatePostsFromOpenAI } from "@/lib/openai";
 import { formatFileNameAsTitle } from "@/utils/format-utils";
+import type { FilterState } from "@/types/filters";
 
-export async function generatePdfSummary({
+export async function generatePosts({
   fileUrl,
   fileName,
+  filters,
 }: {
   fileUrl: string;
   fileName: string;
+  filters: FilterState;
 }) {
   if (!fileUrl) {
     return {
@@ -34,13 +37,13 @@ export async function generatePdfSummary({
       };
     }
 
-    let summary: string | undefined;
+    let posts: any[] | undefined;
 
-    // Step 2: Try OpenAI first
+    // Step 2: Try OpenAI first (now for posts, not just summary)
     try {
-      console.log("Attempting to generate summary with OpenAI...");
-      summary = await generateSummaryFromOpenAI(pdfText);
-      console.log("OpenAI summary generated successfully");
+      console.log("Attempting to generate posts with OpenAI...");
+      posts = await generatePostsFromOpenAI(pdfText, filters);
+      console.log("OpenAI posts generated successfully");
     } catch (openAIError) {
       console.log("OpenAI failed:", openAIError);
 
@@ -51,11 +54,11 @@ export async function generatePdfSummary({
       ) {
         console.log("Rate limit exceeded, trying Gemini as backup...");
         try {
-          summary = await generateSummaryFromGemini(pdfText);
-          console.log("Gemini summary generated successfully as backup");
+          posts = await generatePostsFromGemini(pdfText, filters);
+          console.log("Gemini posts generated successfully as backup");
         } catch (geminiError) {
           console.error("Gemini also failed:", geminiError);
-          throw new Error("Both OpenAI and Gemini failed to generate summary");
+          throw new Error("Both OpenAI and Gemini failed to generate posts");
         }
       } else {
         // If it's not a rate limit error, re-throw it
@@ -63,10 +66,10 @@ export async function generatePdfSummary({
       }
     }
 
-    if (!summary || summary.trim().length === 0) {
+    if (!posts || posts.length === 0) {
       return {
         success: false,
-        message: "Generated summary is empty",
+        message: "Generated posts are empty",
         data: null,
       };
     }
@@ -76,17 +79,19 @@ export async function generatePdfSummary({
 
     return {
       success: true,
-      message: "Summary generated successfully",
+      message: "Posts generated successfully",
       data: {
         title: formattedFileName,
-        summary,
+        posts,
+        filters,
+        fileName,
       },
     };
   } catch (error) {
-    console.error("Error in generatePdfSummary:", error);
+    console.error("Error in generatePosts:", error);
 
     // Provide more specific error messages
-    let errorMessage = "Failed to generate summary";
+    let errorMessage = "Failed to generate posts";
 
     if (error instanceof Error) {
       if (error.message.includes("Failed to fetch")) {

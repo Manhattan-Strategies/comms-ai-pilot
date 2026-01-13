@@ -1,0 +1,112 @@
+import { useRef, useEffect } from "react";
+import UploadFormInput from "./upload-form-input";
+import PromptChat from "./prompt-chat";
+import { PostsDisplay } from "./posts-display";
+import UploadFormLoading from "./upload-form-loading";
+import UploadFormError from "./upload-form-error";
+import type { FilterState } from "@/types/filters";
+import type { GenerationBrief } from "@/types/generation";
+import type { ChatMessage } from "./prompt-chat";
+
+/**
+ * Hook to track previous value
+ */
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T | undefined>(undefined);
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
+/**
+ * Main content area for upload form
+ */
+interface UploadFormContentProps {
+  isLoading: boolean;
+  brief: GenerationBrief | null;
+  messages: ChatMessage[];
+  filters: FilterState;
+  result: any;
+  onMessagesChange: (messages: ChatMessage[]) => void;
+  onBriefChange: (brief: GenerationBrief | null) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+}
+
+export default function UploadFormContent({
+  isLoading,
+  brief,
+  messages,
+  filters,
+  result,
+  onMessagesChange,
+  onBriefChange,
+  onSubmit,
+}: UploadFormContentProps) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const prevIsLoading = usePrevious(isLoading);
+
+  const handleMessagesChange = (newMessages: ChatMessage[]) => {
+    onMessagesChange(newMessages);
+    // Invalidate brief whenever chat changes
+    onBriefChange(null);
+  };
+
+  // Reset form when loading completes (transitions from true to false)
+  useEffect(() => {
+    if (prevIsLoading === true && !isLoading && formRef.current) {
+      formRef.current.reset();
+    }
+  }, [isLoading, prevIsLoading]);
+
+  return (
+    <div className="lg:w-2/3">
+      {/* Upload section divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+          <div className="w-full border-t border-gray-200 dark:border-gray-800" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-transparent px-3 text-muted-foreground text-sm">
+            Upload PDF
+          </span>
+        </div>
+      </div>
+
+      {/* Prompt chat */}
+      <PromptChat
+        filters={filters}
+        brief={brief}
+        messages={messages}
+        onMessagesChange={handleMessagesChange}
+      />
+
+      {/* Upload form input */}
+      <div className="mt-8">
+        <UploadFormInput
+          isLoading={isLoading}
+          ref={formRef}
+          onSubmit={onSubmit}
+        />
+      </div>
+
+      {/* Display generated posts */}
+      {result && result.posts && (
+        <div className="mt-8">
+          <PostsDisplay
+            posts={result.posts}
+            filters={result.filters}
+            fileName={result.fileName}
+            title={result.title}
+          />
+        </div>
+      )}
+
+      {/* Show error if posts generation failed */}
+      {result && result.error && <UploadFormError error={result.error} />}
+
+      {/* Loading state */}
+      {isLoading && <UploadFormLoading />}
+    </div>
+  );
+}

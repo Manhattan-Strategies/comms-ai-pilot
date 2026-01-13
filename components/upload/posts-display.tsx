@@ -3,9 +3,15 @@ interface PostsDisplayProps {
   posts: string[];
   filters: any;
   fileName: string;
+  title: string;
 }
 
-export function PostsDisplay({ posts, filters, fileName }: PostsDisplayProps) {
+export function PostsDisplay({
+  posts,
+  filters,
+  fileName,
+  title,
+}: PostsDisplayProps) {
   const formatFilterValue = (value: string | string[]): string => {
     if (Array.isArray(value)) {
       return value.join(", ");
