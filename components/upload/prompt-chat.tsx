@@ -38,7 +38,7 @@ export default function PromptChat({
         <span className="text-xs text-muted-foreground">{statusLabel}</span>
       </div>
 
-      <div className="mt-3 max-h-64 overflow-auto space-y-3 text-sm">
+      {/* <div className="mt-3 max-h-64 overflow-auto space-y-3 text-sm">
         {messages.map((m, i) => (
           <div
             key={i}
@@ -51,12 +51,12 @@ export default function PromptChat({
             <div>{m.content}</div>
           </div>
         ))}
-      </div>
+      </div> */}
 
       <div className="mt-3">
         <input
           className="w-full rounded border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm"
-          placeholder="Describe what you want the posts to cover… (Press Enter)"
+          placeholder="Describe what you want the posts to cover…"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
@@ -67,9 +67,11 @@ export default function PromptChat({
             }
           }}
         />
-        <p className="mt-2 text-xs text-muted-foreground text-center">
-          Tip: mention the initiative, intended audience reaction, and what you
-          must avoid claiming.
+        <p className="mt-2 text-xs text-muted-foreground text-left">
+          Tell me what you want these posts to be about. Include the situation,
+          what you want to emphasize, and what to avoid. Tip: mention the
+          initiative, intended audience reaction, and what you must avoid
+          claiming.
         </p>
       </div>
     </div>
