@@ -21,11 +21,12 @@ export function useUploadForm() {
     },
   ]);
   const [filters, setFilters] = useState<FilterState>({
-    executive: "ceo",
-    department: "engineering",
-    voice: ["clear", "confident", "pragmatic"],
-    audience: ["peers", "operators", "partners"],
-    platform: "linkedin",
+    executive: undefined,
+    department: undefined,
+    voice: undefined,
+    audience: undefined,
+    platform: undefined,
+    selectedExecutive: undefined,
   });
 
   const { startUpload } = useUploadThing("pdfUploader", {

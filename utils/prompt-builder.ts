@@ -7,6 +7,31 @@ import {
   getVoiceDisplay,
   getAudienceDisplay,
 } from "./filter-mappings";
+import { getExecutiveBySlug } from "@/lib/executive-data";
+
+/**
+ * Helper to infer department from executive title
+ */
+function inferDepartmentFromTitle(title: string): string {
+  const titleLower = title.toLowerCase();
+  if (
+    titleLower.includes("engineering") ||
+    titleLower.includes("technology") ||
+    titleLower.includes("cto")
+  )
+    return "Engineering";
+  if (titleLower.includes("product") || titleLower.includes("cpo"))
+    return "Product";
+  if (titleLower.includes("marketing") || titleLower.includes("cmo"))
+    return "Marketing";
+  if (titleLower.includes("sales") || titleLower.includes("commercial"))
+    return "Sales";
+  if (titleLower.includes("operations") || titleLower.includes("coo"))
+    return "Operations";
+  if (titleLower.includes("finance") || titleLower.includes("cfo"))
+    return "Finance";
+  return "General";
+}
 
 export type FilterSchema = {
   executive: string;
@@ -48,20 +73,69 @@ function getExamplePosts(pdfText: string): string {
 /**
  * Generate dynamic prompt (tone/voice guidance) based on filters and PDF text
  * - PDF text is used only for tone examples.
+ * - If selectedExecutive is provided, uses executive-specific tone, positioning, and frequently used words
  */
 export function generateDynamicPrompt(
-  filters: FilterSchema,
+  filters: FilterSchema & { selectedExecutive?: string },
   pdfText: string
 ): string {
-  return `You are writing social posts on behalf of an executive.
+  const executive = filters.selectedExecutive
+    ? getExecutiveBySlug(filters.selectedExecutive)
+    : null;
 
-Executive title: ${getDisplayValue(filters.executive, "executive")}
-Department or function: ${getDisplayValue(filters.department, "department")}
-Voice and tone: ${getVoiceDisplay(filters.voice)} (clear, confident, pragmatic, business focused)
-Audience: ${getAudienceDisplay(filters.audience)}
-Social platform type: ${getDisplayValue(filters.platform, "platform")}
+  // Build executive-specific context if an executive is selected
+  let executiveContext = "";
+  if (executive) {
+    executiveContext = `
+EXECUTIVE PROFILE:
+Name: ${executive.name}
+Title: ${executive.title}
+Company: ${executive.company}
+
+Executive Positioning & Focus Areas:
+${executive.executivePositioning || "N/A"}
+
+Tone & Style: ${executive.tone || "Professional"}
+
+Frequently Used Words/Phrases (incorporate naturally): ${executive.frequentlyUsedWords || "N/A"}
+
+IMPORTANT: Write in the voice and style of ${executive.name}. Match their tone, incorporate their frequently used words naturally, and align with their positioning themes.
+`;
+  }
+
+  const executiveTitle = filters.executive
+    ? getDisplayValue(filters.executive, "executive")
+    : executive
+      ? executive.title
+      : "Executive";
+  const department = filters.department
+    ? getDisplayValue(filters.department, "department")
+    : executive
+      ? inferDepartmentFromTitle(executive.title)
+      : "General";
+  const voiceTone =
+    filters.voice && filters.voice.length > 0
+      ? getVoiceDisplay(filters.voice)
+      : executive && executive.tone
+        ? executive.tone
+        : "Professional";
+  const audience =
+    filters.audience && filters.audience.length > 0
+      ? getAudienceDisplay(filters.audience)
+      : "General audience";
+  const platform = filters.platform
+    ? getDisplayValue(filters.platform, "platform")
+    : "LinkedIn";
+
+  const basePrompt = `You are writing social posts on behalf of an executive.
+
+Executive title: ${executiveTitle}
+Department or function: ${department}
+Voice and tone: ${voiceTone}
+Audience: ${audience}
+Social platform type: ${platform}
 Example posts: ${getExamplePosts(pdfText)}
-
+${executiveContext}
 Writing guidelines:
 - Sound human and experienced, not promotional or AI generated
 - Use direct language and short paragraphs
@@ -70,6 +144,7 @@ Writing guidelines:
 - Do not use em dashes
 - Do not use the Oxford comma
 - Write as if sharing real progress, not marketing copy
+${executive ? `- Match the tone and style of ${executive.name}: ${executive.tone || "Professional"}` : ""}
 
 Content context:
 ${pdfText ? "- Topic is based on the uploaded document" : "- Topic is based on the generation brief and chat conversation"}
@@ -81,6 +156,8 @@ Output:
 - 5 complete social posts
 - No hashtags unless explicitly requested
 - Professional but conversational tone`;
+
+  return basePrompt;
 }
 
 /**
