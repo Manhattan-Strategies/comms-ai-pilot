@@ -1,5 +1,4 @@
 import { useRef, useEffect } from "react";
-import UploadFormInput from "./upload-form-input";
 import PromptChat, { type PromptChatHandle } from "./prompt-chat";
 import { PostsDisplay } from "./posts-display";
 import UploadFormLoading from "./upload-form-loading";
@@ -48,7 +47,6 @@ export default function UploadFormContent({
   onBriefChange,
   onSubmit,
 }: UploadFormContentProps) {
-  const formRef = useRef<HTMLFormElement>(null);
   const promptChatRef = useRef<PromptChatHandle>(null);
   const prevIsLoading = usePrevious(isLoading);
 
@@ -60,12 +58,7 @@ export default function UploadFormContent({
     onBriefChange(null);
   };
 
-  // Reset form when loading completes (transitions from true to false)
-  useEffect(() => {
-    if (prevIsLoading === true && !isLoading && formRef.current) {
-      formRef.current.reset();
-    }
-  }, [isLoading, prevIsLoading]);
+  // Note: Form reset is now handled within the PromptChat component
 
   return (
     <div className="lg:w-2/3">
@@ -76,41 +69,10 @@ export default function UploadFormContent({
         brief={brief}
         messages={messages}
         onMessagesChange={handleMessagesChange}
+        isLoading={isLoading}
+        prevIsLoading={prevIsLoading}
+        onSubmit={onSubmit}
       />
-      {/* Upload section divider */}
-      <div className="mt-8 relative">
-        <div className="relative flex justify-center">
-          <span className="bg-transparent px-3 text-muted-foreground text-sm">
-            Optional: Upload Supporting PDF
-          </span>
-        </div>
-      </div>
-
-      {/* Upload form input */}
-      <div className="mt-8">
-        <UploadFormInput
-          isLoading={isLoading}
-          ref={formRef}
-          onSubmit={(e) => {
-            // Ensure currentTarget is set to the form element
-            if (formRef.current && e.currentTarget !== formRef.current) {
-              // Create a synthetic event with the correct currentTarget
-              const syntheticEvent = {
-                ...e,
-                currentTarget: formRef.current,
-                target: e.target,
-                preventDefault: e.preventDefault.bind(e),
-                stopPropagation: e.stopPropagation.bind(e),
-              } as React.FormEvent<HTMLFormElement>;
-              onSubmit(syntheticEvent, () =>
-                promptChatRef.current?.flushInput()
-              );
-            } else {
-              onSubmit(e, () => promptChatRef.current?.flushInput());
-            }
-          }}
-        />
-      </div>
 
       {/* Display generated posts */}
       {/* Use current filters, not stale result.filters */}
