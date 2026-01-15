@@ -11,8 +11,9 @@ type Step = {
 const steps: Step[] = [
   {
     icon: <FileText size={64} strokeWidth={1.5} />,
-    label: "Upload your PDF",
-    description: "Simply drag and drop your PDF document or click to upload",
+    label: "Plan your content",
+    description:
+      "Write a brief for your content or upload a document, then filter by executive and audience",
   },
   {
     icon: <BrainCircuit size={64} strokeWidth={1.5} />,
