@@ -77,6 +77,20 @@ function createPostPrompt(pdfText: string, filters: FilterState): string {
     coo: "Chief Operating Officer",
   };
 
+  // Handle optional fields with defaults
+  const executiveRole = executive
+    ? executiveTitles[executive] || executive.toUpperCase()
+    : "Executive";
+  const departmentName = department
+    ? department.charAt(0).toUpperCase() + department.slice(1)
+    : "General";
+  const voiceList =
+    voice && voice.length > 0 ? voice.join(", ") : "Professional";
+  const audienceList =
+    audience && audience.length > 0 ? audience.join(", ") : "General audience";
+  const platformName = platform || "LinkedIn";
+  const primaryTone = voice && voice.length > 0 ? voice[0] : "professional";
+
   return `
     As a social media content creator specializing in executive communication, create 5 engaging social media posts using this document as reference:
 
@@ -84,11 +98,11 @@ function createPostPrompt(pdfText: string, filters: FilterState): string {
     ${pdfText.substring(0, 10000)}...
 
     EXECUTIVE CONTEXT:
-    - Role: ${executiveTitles[executive] || executive.toUpperCase()}
-    - Department: ${department.charAt(0).toUpperCase() + department.slice(1)}
-    - Voice: ${voice.join(", ")}
-    - Audience: ${audience.join(", ")}
-    - Platform: ${platform}
+    - Role: ${executiveRole}
+    - Department: ${departmentName}
+    - Voice: ${voiceList}
+    - Audience: ${audienceList}
+    - Platform: ${platformName}
 
     FOR EACH POST (create 5 total):
     1. Make it authentic to the executive's perspective
@@ -96,7 +110,7 @@ function createPostPrompt(pdfText: string, filters: FilterState): string {
     3. Write in a conversational but professional tone
     4. Keep it concise (2-4 sentences)
     5. Include relevant hashtags (3-5 max)
-    6. Make it platform-appropriate for ${platform}
+    6. Make it platform-appropriate for ${platformName}
 
     RESPONSE FORMAT:
     Return a JSON object with a "posts" array containing 5 objects:
@@ -105,7 +119,7 @@ function createPostPrompt(pdfText: string, filters: FilterState): string {
         "title": "Catchy title for the post",
         "content": "The actual post content (2-4 sentences)",
         "hashtags": ["#relevant", "#hashtags"],
-        "tone": "${voice[0]}" // primary tone from selection
+        "tone": "${primaryTone}" // primary tone from selection
       }
     ]
 
