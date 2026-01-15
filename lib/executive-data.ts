@@ -15,6 +15,7 @@ export type Executive = {
   executivePositioning: string;
   otherNotes: string;
   status: string;
+  organizations?: string; // Organizations field from CSV - used as department reference
 };
 
 /**
@@ -62,6 +63,7 @@ export const EXECUTIVES: Executive[] = [
       "Channel Expert - Elevating a unique perspective. User Experience Evangelist - Positioning HP as a solutions company. Print Visionary - Revolutionizing printing in the modern workforce.",
     otherNotes: "",
     status: "Active",
+    organizations: "HP Office Print Solutions",
   },
   {
     name: "Carlos F. Cortés",
@@ -125,6 +127,7 @@ export const EXECUTIVES: Executive[] = [
     lastName: "Akdede",
     title: "Global Head of Go-To-Market, 3D Printing Solutions @HP",
     company: "hp",
+    organizations: "3D Printing Solutions",
     tone: "Smart and Thoughtful",
     frequentlyUsedWords: "hp; 3d-printing; barcelona; digital-equity; sustainability",
     executivePositioning:
@@ -139,6 +142,7 @@ export const EXECUTIVES: Executive[] = [
     lastName: "Minec",
     title: "VP & Global Head Polymers 3D Printing",
     company: "hp",
+    organizations: "Polymers 3D Printing",
     tone: "Professional and Excited",
     frequentlyUsedWords: "print",
     executivePositioning:
@@ -167,6 +171,7 @@ export const EXECUTIVES: Executive[] = [
     lastName: "Rosenbaum",
     title: "Vice President and General Manager, WW Managed Services Center of Excellence",
     company: "hp",
+    organizations: "Managed Services Global Strategy and Practice Team",
     tone: "Casual girl dad",
     frequentlyUsedWords: "girldad; grad-itude-for-services",
     executivePositioning:
@@ -215,6 +220,7 @@ export const EXECUTIVES: Executive[] = [
       "Partner First Mindset. Employee Engagement. Industry Trends. Product Solutions.",
     otherNotes: "",
     status: "Active",
+    organizations: "HP Industrial Print Organization",
   },
   {
     name: "Helen Sheirbon",
@@ -229,6 +235,7 @@ export const EXECUTIVES: Executive[] = [
       "Championing the Future of Collaboration - Revolutionizing Collaboration. Reinventing the as-a-service Mode - Visionary Leadership for HP's Future. Advocating for Sustainable Impact & DEI - Advocacy for Sustainability in Hybrid Systems.",
     otherNotes: "",
     status: "Active",
+    organizations: "Hybrid Systems",
   },
   {
     name: "Jean Kozub",
@@ -243,6 +250,7 @@ export const EXECUTIVES: Executive[] = [
       "Trusted Transformational Leader - Genuine and active leadership. Innovative Sales Strategy & Market Trailblazer - Leveraging insights and data. Future-Forward Visionary - Shaping the future of work.",
     otherNotes: "",
     status: "Active",
+    organizations: "Personal Systems & Services",
   },
   {
     name: "Joe Pacula",
@@ -376,6 +384,7 @@ export const EXECUTIVES: Executive[] = [
     lastName: "Shah",
     title: "Head of Personal Systems, Greater Asia",
     company: "hp",
+    organizations: "Hybrid Systems",
     tone: "",
     frequentlyUsedWords: "hybrid-work; poly; ai; community; future-of-work; hp; workforce-solutions",
     executivePositioning:
@@ -424,6 +433,7 @@ export const EXECUTIVES: Executive[] = [
       "Scale through P3D's Ecosystem of Partners and Customer. Accelerating Application Adoption. Additive Manufacturing Transformation. Innovation for Growth.",
     otherNotes: "",
     status: "Active",
+    organizations: "3D Printing",
   },
   {
     name: "Stacy Wolff",
@@ -445,6 +455,7 @@ export const EXECUTIVES: Executive[] = [
     firstName: "Sue",
     lastName: "Richards",
     title: "Division President and General Manager of Home Printing",
+    organizations: "Home Printing",
     company: "hp",
     tone: "Casual and focused on social issues",
     frequentlyUsedWords: "ai; women-in-tech; innovative-spirit; women-in-stem",

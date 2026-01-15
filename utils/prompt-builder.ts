@@ -112,10 +112,14 @@ IMPORTANT: Use ${executive.name}'s tone and style, but the CONTENT and TOPICS mu
       ? getDisplayValue(filters.executive, "executive")
       : "Executive";
 
-  // When selectedExecutive is set, infer department from executive's title
+  // When selectedExecutive is set, use organizations field from executive data as department
+  // If organizations is not available, fall back to inferred from title
   // Only use filters.department if no executive is selected
   const department = executive
-    ? inferDepartmentFromTitle(executive.title)
+    ? executive.organizations && executive.organizations.trim()
+      ? // Extract first organization (before comma if multiple)
+        executive.organizations.split(",")[0].trim()
+      : inferDepartmentFromTitle(executive.title)
     : filters.department
       ? getDisplayValue(filters.department, "department")
       : "General";
