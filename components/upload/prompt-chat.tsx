@@ -1,44 +1,65 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useImperativeHandle, forwardRef } from "react";
 import type { FilterState } from "@/types/filters";
 import type { GenerationBrief } from "@/types/generation";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
-export default function PromptChat({
-  filters,
-  brief,
-  messages,
-  onMessagesChange,
-}: {
+export type PromptChatHandle = {
+  flushInput: () => void;
+};
+
+interface PromptChatProps {
   filters: FilterState;
   brief: GenerationBrief | null;
   messages: ChatMessage[];
-  onMessagesChange: (m: ChatMessage[]) => void;
-}) {
-  const [input, setInput] = useState("");
+  onMessagesChange: (
+    m: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])
+  ) => void;
+}
 
-  const statusLabel = useMemo(() => {
-    if (brief) return "Brief ready";
-    const hasUser = messages.some((m) => m.role === "user");
-    return hasUser ? "Drafting" : "Drafting";
-  }, [brief, messages]);
+const PromptChat = forwardRef<PromptChatHandle, PromptChatProps>(
+  ({ filters, brief, messages, onMessagesChange }, ref) => {
+    const [input, setInput] = useState("");
 
-  function addUserMessage(content: string) {
-    const trimmed = content.trim();
-    if (!trimmed) return;
-    onMessagesChange([...messages, { role: "user", content: trimmed }]);
-  }
+    useImperativeHandle(ref, () => ({
+      flushInput: () => {
+        const trimmed = input.trim();
+        if (trimmed) {
+          onMessagesChange((prev: ChatMessage[]) => [
+            ...prev,
+            { role: "user", content: trimmed },
+          ]);
+          setInput("");
+        }
+      },
+    }));
 
-  return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-800 p-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-medium text-2xl">Assistant Chat</h3>
-        <span className="text-xs text-muted-foreground">{statusLabel}</span>
-      </div>
+    const statusLabel = useMemo(() => {
+      if (brief) return "Brief ready";
+      const hasUser = messages.some((m) => m.role === "user");
+      return hasUser ? "Drafting" : "Drafting";
+    }, [brief, messages]);
 
-      {/* <div className="mt-3 max-h-64 overflow-auto space-y-3 text-sm">
+    function addUserMessage(content: string) {
+      const trimmed = content.trim();
+      if (!trimmed) return;
+      onMessagesChange((prev: ChatMessage[]) => [
+        ...prev,
+        { role: "user", content: trimmed },
+      ]);
+      setInput("");
+    }
+
+    return (
+      <div className="rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-medium text-2xl">Assistant Chat</h3>
+          <span className="text-xs text-muted-foreground">{statusLabel}</span>
+        </div>
+
+        {/* <div className="mt-3 max-h-64 overflow-auto space-y-3 text-sm">
         {messages.map((m, i) => (
           <div
             key={i}
@@ -53,29 +74,34 @@ export default function PromptChat({
         ))}
       </div> */}
 
-      <div className="mt-3">
-        <input
-          className="w-full h-24 rounded border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm"
-          placeholder="Describe what you want the posts to cover…"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              addUserMessage(input);
-              setInput("");
-            }
-          }}
-        />
-        <p className="mt-2 text-xs text-muted-foreground text-left">
-          Tell me what you want these posts to be about. Include the situation,
-          what you want to emphasize, and what to avoid.
-        </p>
-        <p className="text-xs text-muted-foreground text-left">
-          Tip: mention the initiative, intended audience reaction, and what you
-          must avoid claiming.
-        </p>
+        <div className="mt-3">
+          <input
+            className="w-full h-24 rounded border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm"
+            placeholder="Describe what you want the posts to cover…"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addUserMessage(input);
+                setInput("");
+              }
+            }}
+          />
+          <p className="mt-2 text-xs text-muted-foreground text-left">
+            Tell me what you want these posts to be about. Include the
+            situation, what you want to emphasize, and what to avoid.
+          </p>
+          <p className="text-xs text-muted-foreground text-left">
+            Tip: mention the initiative, intended audience reaction, and what
+            you must avoid claiming.
+          </p>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+);
+
+PromptChat.displayName = "PromptChat";
+
+export default PromptChat;

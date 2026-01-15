@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import UploadFormInput from "./upload-form-input";
-import PromptChat from "./prompt-chat";
+import PromptChat, { type PromptChatHandle } from "./prompt-chat";
 import { PostsDisplay } from "./posts-display";
 import UploadFormLoading from "./upload-form-loading";
 import UploadFormError from "./upload-form-error";
@@ -28,9 +28,14 @@ interface UploadFormContentProps {
   messages: ChatMessage[];
   filters: FilterState;
   result: any;
-  onMessagesChange: (messages: ChatMessage[]) => void;
+  onMessagesChange: (
+    messages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])
+  ) => void;
   onBriefChange: (brief: GenerationBrief | null) => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  onSubmit: (
+    e: React.FormEvent<HTMLFormElement>,
+    flushChatInput?: () => void
+  ) => Promise<void>;
 }
 
 export default function UploadFormContent({
@@ -44,10 +49,13 @@ export default function UploadFormContent({
   onSubmit,
 }: UploadFormContentProps) {
   const formRef = useRef<HTMLFormElement>(null);
+  const promptChatRef = useRef<PromptChatHandle>(null);
   const prevIsLoading = usePrevious(isLoading);
 
-  const handleMessagesChange = (newMessages: ChatMessage[]) => {
-    onMessagesChange(newMessages);
+  const handleMessagesChange = (
+    updater: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])
+  ) => {
+    onMessagesChange(updater);
     // Invalidate brief whenever chat changes
     onBriefChange(null);
   };
@@ -63,6 +71,7 @@ export default function UploadFormContent({
     <div className="lg:w-2/3">
       {/* Prompt chat */}
       <PromptChat
+        ref={promptChatRef}
         filters={filters}
         brief={brief}
         messages={messages}
@@ -82,16 +91,34 @@ export default function UploadFormContent({
         <UploadFormInput
           isLoading={isLoading}
           ref={formRef}
-          onSubmit={onSubmit}
+          onSubmit={(e) => {
+            // Ensure currentTarget is set to the form element
+            if (formRef.current && e.currentTarget !== formRef.current) {
+              // Create a synthetic event with the correct currentTarget
+              const syntheticEvent = {
+                ...e,
+                currentTarget: formRef.current,
+                target: e.target,
+                preventDefault: e.preventDefault.bind(e),
+                stopPropagation: e.stopPropagation.bind(e),
+              } as React.FormEvent<HTMLFormElement>;
+              onSubmit(syntheticEvent, () =>
+                promptChatRef.current?.flushInput()
+              );
+            } else {
+              onSubmit(e, () => promptChatRef.current?.flushInput());
+            }
+          }}
         />
       </div>
 
       {/* Display generated posts */}
+      {/* Use current filters, not stale result.filters */}
       {result && result.posts && (
         <div className="mt-8">
           <PostsDisplay
             posts={result.posts}
-            filters={result.filters}
+            filters={filters}
             fileName={result.fileName}
             title={result.title}
           />

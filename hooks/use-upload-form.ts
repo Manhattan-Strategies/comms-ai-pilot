@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useUploadThing } from "@/utils/uploadthing";
 import { uploadFormSchema } from "@/lib/upload-form-schema";
@@ -28,7 +28,21 @@ export function useUploadForm() {
     platform: undefined,
     selectedExecutive: undefined,
   });
+  const messagesRef = useRef(messages);
+  const filtersRef = useRef(filters);
+  const briefRef = useRef(brief);
 
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
+
+  useEffect(() => {
+    briefRef.current = brief;
+  }, [brief]);
   const { startUpload } = useUploadThing("pdfUploader", {
     onClientUploadComplete: (data) => {
       console.log("uploaded successfully!", data);
@@ -56,40 +70,162 @@ export function useUploadForm() {
    * Generate brief from chat messages
    */
   const generateBriefFromChat = async (): Promise<GenerationBrief | null> => {
-    const hasUserMessage = messages.some(
+    const latestMessages = messagesRef.current;
+    const latestFilters = filtersRef.current;
+
+    console.log("=== generateBriefFromChat called ===");
+    console.log("Latest messages from ref:", latestMessages);
+    console.log("Latest messages length:", latestMessages.length);
+
+    // Only proceed if we have at least one non-empty user message
+    const userMessages = latestMessages.filter(
       (m) => m.role === "user" && m.content.trim().length > 0
     );
 
-    // If user never typed anything, let uploads proceed without a brief
-    if (!hasUserMessage) return null;
-
-    const res = await fetch("/api/generate-brief", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ filters, messages }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || !data?.success || !data?.brief) {
-      throw new Error(data?.error || "Failed to generate brief");
+    console.log("User messages found:", userMessages.length);
+    if (userMessages.length > 0) {
+      console.log(
+        "User messages content:",
+        userMessages.map((m) => m.content)
+      );
     }
 
-    return data.brief as GenerationBrief;
+    if (userMessages.length === 0) {
+      console.log("No user messages, returning null");
+      return null;
+    }
+
+    const requestBody = {
+      filters: latestFilters,
+      messages: latestMessages,
+    };
+
+    console.log("=== Calling /api/generate-brief ===");
+    console.log("Request body:", JSON.stringify(requestBody, null, 2));
+
+    try {
+      const res = await fetch("/api/generate-brief", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log("Brief API response status:", res.status);
+      const data = await res.json();
+      console.log("Brief API response data:", data);
+
+      if (!res.ok || data?.success !== true) {
+        console.error("Brief generation failed:", data?.error);
+        throw new Error(data?.error || "Failed to generate brief");
+      }
+
+      const briefObj = data?.brief;
+      console.log("Brief object from response:", briefObj);
+
+      if (!briefObj) {
+        console.error("Brief is null or undefined in response");
+        throw new Error("Brief was not generated");
+      }
+
+      // Ensure a usable topic exists
+      const topic =
+        typeof briefObj.topic === "string" ? briefObj.topic.trim() : "";
+
+      console.log("Brief topic:", topic);
+
+      if (!topic) {
+        console.warn("Brief topic is empty, setting from user message");
+        briefObj.topic =
+          userMessages[0].content.slice(0, 200) || "Social media posts";
+        console.log("Set brief topic to:", briefObj.topic);
+      }
+
+      console.log("Returning brief:", briefObj);
+      return briefObj as GenerationBrief;
+    } catch (error) {
+      console.error("Error in generateBriefFromChat:", error);
+      throw error;
+    }
   };
 
   /**
    * Handle form submission
    * Supports both with and without PDF file
    */
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+    flushChatInput?: () => void
+  ) => {
     e.preventDefault();
 
     try {
       setIsLoading(true);
 
-      const formData = new FormData(e.currentTarget);
-      const file = formData.get("file") as File | null;
+      // FORCE commit any pending chat input before submit
+      let messagesAfterFlush = messages;
+      if (flushChatInput) {
+        console.log("=== Flushing chat input before submit ===");
+        console.log("Messages before flush:", messagesRef.current);
+        flushChatInput();
+        // Wait for state to update
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        // Read from state directly after flush - it's updated immediately
+        // The useEffect will update messagesRef.current, but state is more reliable here
+        messagesAfterFlush = messages;
+        console.log("Messages after flush:", messagesAfterFlush);
+        console.log("=== End flush ===");
+      }
+
+      // Use the flushed messages, or refs if no flush happened
+      const latestMessages = messagesAfterFlush;
+      const latestFilters = filtersRef.current;
+      const latestBrief = briefRef.current;
+
+      console.log("=== CLIENT: Right Before Submit (After Flush) ===");
+      console.log("Latest messages from ref:", latestMessages);
+      console.log("Latest messages count:", latestMessages.length);
+      console.log("Latest brief from ref:", latestBrief);
+      console.log("Latest filters from ref:", latestFilters);
+      console.log("=== END CLIENT LOG ===");
+
+      // Get form element safely - handle case where currentTarget might not be a form
+      let formElement: HTMLFormElement | null = null;
+
+      // Try multiple ways to get the form element
+      if (e.currentTarget instanceof HTMLFormElement) {
+        formElement = e.currentTarget;
+      } else if (e.target instanceof HTMLFormElement) {
+        formElement = e.target;
+      } else if (e.target instanceof HTMLElement) {
+        formElement = e.target.closest("form");
+      } else if (e.currentTarget && typeof e.currentTarget === "object") {
+        // If currentTarget is an input, get its form property
+        const input = e.currentTarget as HTMLInputElement;
+        if (input.form) {
+          formElement = input.form;
+        }
+      }
+
+      // Get file from form if we have a form element
+      let file: File | null = null;
+      if (formElement) {
+        try {
+          const formData = new FormData(formElement);
+          file = formData.get("file") as File | null;
+        } catch (error) {
+          console.error("Error creating FormData:", error);
+          // Fallback: try to get file input directly
+          const fileInput = formElement.querySelector(
+            'input[type="file"]'
+          ) as HTMLInputElement;
+          if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            file = fileInput.files[0];
+          }
+        }
+      } else {
+        // No form element found - this is OK, we can proceed without a file
+        console.log("No form element found, proceeding without file");
+      }
 
       // Validate file if provided
       if (file && file.size > 0) {
@@ -103,13 +239,21 @@ export function useUploadForm() {
       }
 
       // Generate brief if not already available
-      let briefToUse = brief;
+      // Use latest messages from ref (after flush)
+      let briefToUse = latestBrief;
       try {
         if (!briefToUse) {
+          console.log("Generating brief from chat...");
+          console.log("Using latest messages from ref:", latestMessages);
           briefToUse = await generateBriefFromChat();
-          setBrief(briefToUse);
+          console.log("Brief generated:", briefToUse);
+          if (briefToUse) {
+            setBrief(briefToUse);
+            briefRef.current = briefToUse;
+          }
         }
       } catch (e) {
+        console.error("Brief generation error:", e);
         toast.error("Brief generation failed", {
           description: e instanceof Error ? e.message : "Please try again",
         });
@@ -117,14 +261,31 @@ export function useUploadForm() {
         return;
       }
 
+      // CLIENT LOG: After brief generation
+      console.log("=== CLIENT: After Brief Generation ===");
+      console.log("Final briefToUse:", briefToUse);
+      console.log("Final messages from ref:", messagesRef.current);
+      console.log("=== END CLIENT LOG ===");
+
       // If no file, generate posts directly via API
       if (!file || file.size === 0) {
+        // Use latest state from refs (after flush)
+        const currentMessages = messagesRef.current;
+        const currentBrief = briefToUse;
+        const currentFilters = filtersRef.current;
+
+        console.log("=== CLIENT: About to call /api/generate-posts ===");
+        console.log("Sending messages:", currentMessages);
+        console.log("Sending brief:", currentBrief);
+        console.log("Sending filters:", currentFilters);
+
         const response = await fetch("/api/generate-posts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            filters,
-            brief: briefToUse,
+            filters: currentFilters,
+            brief: currentBrief,
+            messages: currentMessages,
           }),
         });
 
@@ -155,9 +316,20 @@ export function useUploadForm() {
       }
 
       // If file exists, use upload flow
+      // Use latest state from refs (after flush)
+      const currentMessages = messagesRef.current;
+      const currentBrief = briefToUse;
+      const currentFilters = filtersRef.current;
+
+      console.log("=== CLIENT: About to call startUpload ===");
+      console.log("Sending messages:", currentMessages);
+      console.log("Sending brief:", currentBrief);
+      console.log("Sending filters:", currentFilters);
+
       const uploadResponse = await startUpload([file], {
-        filters,
-        brief: briefToUse as GenerationBrief,
+        filters: currentFilters,
+        brief: currentBrief as GenerationBrief,
+        messages: currentMessages,
       });
 
       if (uploadResponse?.[0]?.serverData) {

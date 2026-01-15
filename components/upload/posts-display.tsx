@@ -1,4 +1,7 @@
 // components/upload/posts-display.tsx
+import { getExecutiveBySlug } from "@/lib/executive-data";
+import { getDisplayValue } from "@/utils/filter-mappings";
+
 interface PostsDisplayProps {
   posts: string[];
   filters: any;
@@ -12,11 +15,38 @@ export function PostsDisplay({
   fileName,
   title,
 }: PostsDisplayProps) {
-  const formatFilterValue = (value: string | string[]): string => {
+  const formatFilterValue = (key: string, value: string | string[]): string => {
     if (Array.isArray(value)) {
+      // Format arrays based on key
+      if (key === "voice") {
+        return value
+          .map((v) => v.charAt(0).toUpperCase() + v.slice(1))
+          .join(", ");
+      }
+      if (key === "audience") {
+        return value
+          .map((v) => v.charAt(0).toUpperCase() + v.slice(1).replace("_", " "))
+          .join(", ");
+      }
       return value.join(", ");
     }
-    return value;
+
+    // Format single values based on key
+    if (key === "executive" && typeof value === "string") {
+      return getDisplayValue(value, "executive");
+    }
+    if (key === "department" && typeof value === "string") {
+      return getDisplayValue(value, "department");
+    }
+    if (key === "platform" && typeof value === "string") {
+      return getDisplayValue(value, "platform");
+    }
+    if (key === "selectedExecutive" && typeof value === "string") {
+      const executive = getExecutiveBySlug(value);
+      return executive ? executive.name : value;
+    }
+
+    return String(value);
   };
 
   return (
@@ -38,16 +68,92 @@ export function PostsDisplay({
           Settings Used:
         </h4>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-          {Object.entries(filters).map(([key, value]) => (
-            <div key={key} className="flex items-center">
-              <span className="text-gray-500 dark:text-gray-400 mr-1 capitalize">
-                {key}:
-              </span>
-              <span className="font-medium text-gray-900 dark:text-gray-100">
-                {formatFilterValue(value as string | string[])}
-              </span>
-            </div>
-          ))}
+          {(() => {
+            // If selectedExecutive is set, show executive info first, then other filters
+            const selectedExecutive = filters.selectedExecutive
+              ? getExecutiveBySlug(filters.selectedExecutive)
+              : null;
+
+            const filterEntries = Object.entries(filters).filter(
+              ([key, value]) => {
+                // Skip selectedExecutive and executive/department if we have a selected executive
+                // (we'll show them separately with actual executive data)
+                if (selectedExecutive) {
+                  if (
+                    key === "selectedExecutive" ||
+                    key === "executive" ||
+                    key === "department"
+                  ) {
+                    return false;
+                  }
+                }
+                // Filter out undefined, null, empty arrays
+                if (value === undefined || value === null) return false;
+                if (Array.isArray(value) && value.length === 0) return false;
+                if (typeof value === "string" && value.trim() === "")
+                  return false;
+                return true;
+              }
+            );
+
+            // If we have a selected executive, show their actual title and department first
+            const executiveDisplay = selectedExecutive ? (
+              <>
+                <div className="flex items-center">
+                  <span className="text-gray-500 dark:text-gray-400 mr-1">
+                    Executive:
+                  </span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {selectedExecutive.name}
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-gray-500 dark:text-gray-400 mr-1">
+                    Title:
+                  </span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {selectedExecutive.title}
+                  </span>
+                </div>
+                {filters.department && (
+                  <div className="flex items-center">
+                    <span className="text-gray-500 dark:text-gray-400 mr-1">
+                      Department:
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {formatFilterValue("department", filters.department)}
+                    </span>
+                  </div>
+                )}
+              </>
+            ) : null;
+
+            return (
+              <>
+                {executiveDisplay}
+                {filterEntries.map(([key, value]) => {
+                  // Format key for display
+                  let displayKey = key;
+                  if (key === "executive") {
+                    displayKey = "Executive Role";
+                  } else {
+                    displayKey = key.charAt(0).toUpperCase() + key.slice(1);
+                  }
+
+                  return (
+                    <div key={key} className="flex items-center">
+                      <span className="text-gray-500 dark:text-gray-400 mr-1">
+                        {displayKey}:
+                      </span>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">
+                        {formatFilterValue(key, value as string | string[])}
+                      </span>
+                    </div>
+                  );
+                })}
+              </>
+            );
+          })()}
         </div>
       </div>
 

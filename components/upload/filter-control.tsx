@@ -12,7 +12,10 @@ export default function FilterControls({
   filters,
   onFiltersChange,
 }: FilterControlsProps) {
-  const updateFilter = (key: keyof FilterState, value: string | string[] | undefined) => {
+  const updateFilter = (
+    key: keyof FilterState,
+    value: string | string[] | undefined
+  ) => {
     onFiltersChange({
       ...filters,
       [key]: value,
@@ -26,16 +29,21 @@ export default function FilterControls({
       const executive = getExecutiveBySlug(executiveSlug);
       if (executive) {
         // When an executive is selected, populate fields from executive data
-        // and hide manual selection fields
+        // Dynamically set executive and department based on the executive's title
         onFiltersChange({
           ...filters,
           selectedExecutive: executiveSlug,
-          // Infer executive role from title (e.g., "President" -> CEO, "CTO" -> CTO)
+          // Infer and set executive role from title (for display purposes)
           executive: inferExecutiveRole(executive.title),
-          // Infer department from title
+          // Infer and set department from title (for display purposes)
           department: inferDepartment(executive.title),
           // Use executive's tone for voice (convert tone string to array)
-          voice: executive.tone ? [executive.tone.toLowerCase().split(/[,\s&]+/)[0] || "professional"] : ["professional"],
+          voice: executive.tone
+            ? [
+                executive.tone.toLowerCase().split(/[,\s&]+/)[0] ||
+                  "professional",
+              ]
+            : undefined,
         });
       }
     } else {
@@ -53,26 +61,53 @@ export default function FilterControls({
   // Helper to infer executive role from title
   const inferExecutiveRole = (title: string): string => {
     const titleLower = title.toLowerCase();
-    if (titleLower.includes("ceo") || titleLower.includes("chief executive")) return "ceo";
-    if (titleLower.includes("cto") || titleLower.includes("chief technology")) return "cto";
-    if (titleLower.includes("cmo") || titleLower.includes("chief marketing")) return "cmo";
-    if (titleLower.includes("cpo") || titleLower.includes("chief product")) return "cpo";
-    if (titleLower.includes("cfo") || titleLower.includes("chief financial")) return "cfo";
-    if (titleLower.includes("coo") || titleLower.includes("chief operating")) return "coo";
-    if (titleLower.includes("president")) return "ceo"; // Default president to CEO
+    if (titleLower.includes("ceo") || titleLower.includes("chief executive"))
+      return "ceo";
+    if (titleLower.includes("cto") || titleLower.includes("chief technology"))
+      return "cto";
+    if (titleLower.includes("cmo") || titleLower.includes("chief marketing"))
+      return "cmo";
+    if (titleLower.includes("cpo") || titleLower.includes("chief product"))
+      return "cpo";
+    if (titleLower.includes("cfo") || titleLower.includes("chief financial"))
+      return "cfo";
+    if (titleLower.includes("coo") || titleLower.includes("chief operating"))
+      return "coo";
+    if (
+      titleLower.includes("president") ||
+      titleLower.includes("svp") ||
+      titleLower.includes("md")
+    )
+      return "ceo"; // SVP, MD, President -> CEO
     return "ceo"; // Default fallback
   };
 
   // Helper to infer department from title
   const inferDepartment = (title: string): string => {
     const titleLower = title.toLowerCase();
-    if (titleLower.includes("engineering") || titleLower.includes("technology") || titleLower.includes("cto")) return "engineering";
-    if (titleLower.includes("product") || titleLower.includes("cpo")) return "product";
-    if (titleLower.includes("marketing") || titleLower.includes("cmo")) return "marketing";
-    if (titleLower.includes("sales") || titleLower.includes("commercial")) return "sales";
-    if (titleLower.includes("operations") || titleLower.includes("coo")) return "operations";
-    if (titleLower.includes("finance") || titleLower.includes("cfo")) return "finance";
-    return "engineering"; // Default fallback
+    if (
+      titleLower.includes("engineering") ||
+      titleLower.includes("technology") ||
+      titleLower.includes("cto")
+    )
+      return "engineering";
+    if (titleLower.includes("product") || titleLower.includes("cpo"))
+      return "product";
+    if (titleLower.includes("marketing") || titleLower.includes("cmo"))
+      return "marketing";
+    if (
+      titleLower.includes("sales") ||
+      titleLower.includes("commercial") ||
+      titleLower.includes("md") ||
+      titleLower.includes("latin america") ||
+      titleLower.includes("region")
+    )
+      return "sales"; // MD often means Managing Director in sales/regional roles
+    if (titleLower.includes("operations") || titleLower.includes("coo"))
+      return "operations";
+    if (titleLower.includes("finance") || titleLower.includes("cfo"))
+      return "finance";
+    return "general"; // Default to general instead of engineering
   };
 
   const toggleMultiFilter = (key: keyof FilterState, value: string) => {
@@ -149,7 +184,11 @@ export default function FilterControls({
           </select>
           {filters.selectedExecutive && (
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Selected: {executives.find((e) => e.slug === filters.selectedExecutive)?.name}
+              Selected:{" "}
+              {
+                executives.find((e) => e.slug === filters.selectedExecutive)
+                  ?.name
+              }
             </p>
           )}
         </div>

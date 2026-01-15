@@ -1,5 +1,14 @@
 import OpenAI from "openai";
 import type { FilterState } from "@/types/filters";
+import {
+  generateDynamicPrompt,
+  buildGenerationPromptTemplate,
+  formatChatMessages,
+} from "@/utils/prompt-builder";
+import { parseGeneratedPosts } from "@/utils/post-parser";
+import { ChatOpenAI } from "@langchain/openai";
+import { PromptTemplate } from "@langchain/core/prompts";
+import { StringOutputParser } from "@langchain/core/output_parsers";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -7,7 +16,9 @@ const openai = new OpenAI({
 
 export async function generatePostsFromOpenAI(
   pdfText: string,
-  filters: FilterState
+  filters: FilterState,
+  brief?: any,
+  messages?: Array<{ role: string; content: string }>
 ): Promise<any[]> {
   try {
     console.log(
@@ -15,120 +26,79 @@ export async function generatePostsFromOpenAI(
       pdfText.length
     );
 
-    // Truncate text if it's too long (OpenAI has token limits)
-    const truncatedText = pdfText.substring(0, 12000); // Keep it reasonable
+    // Use centralized prompt builder instead of custom prompt
+    // Cast filters to match FilterSchema type (both have optional fields)
+    const systemPrompt = generateDynamicPrompt(filters as any, pdfText);
 
-    // Create a prompt based on filters
-    const prompt = createPostPrompt(truncatedText, filters);
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-5-nano",
-      messages: [
-        {
-          role: "system",
-          content: `You are a social media content creator specializing in executive communication. 
-          Create engaging social media posts based on document content.
-          Format your response as a JSON array with 5 objects, each containing:
-          - title: string (catchy title for the post)
-          - content: string (the actual post content)
-          - hashtags: string[] (relevant hashtags)
-          - platform: string (one of: linkedin, twitter, facebook, instagram)
-          - tone: string (matching the selected voice tones)`,
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      // temperature: 0.8,
-      // max_tokens: 3000,
-      response_format: { type: "json_object" },
+    // Initialize LangChain OpenAI (consistent with other endpoints)
+    const llm = new ChatOpenAI({
+      modelName: "gpt-5-nano",
+      openAIApiKey: process.env.OPENAI_API_KEY,
     });
-    console.log(response.choices[0].message);
-    const content = response.choices[0]?.message?.content?.trim();
 
-    if (!content) {
-      console.error("OpenAI returned empty response");
-      throw new Error("OpenAI returned empty response");
+    const briefJson = JSON.stringify(brief ?? {}, null, 2);
+
+    // Debug messages BEFORE formatting
+    console.log("=== OpenAI Post Generation Debug ===");
+    console.log("Messages received (raw):", messages?.length || 0);
+    if (messages && messages.length > 0) {
+      console.log("Messages content (raw):", JSON.stringify(messages, null, 2));
     }
 
-    // Parse the JSON response
-    const result = JSON.parse(content);
-    const posts = result.posts || result; // Handle both structures
+    const chatMessages = formatChatMessages(messages);
 
-    console.log("OpenAI posts generated:", posts.length);
-    return Array.isArray(posts) ? posts : [posts];
+    // Debug after formatting
+    console.log("Filters received:", JSON.stringify(filters, null, 2));
+    console.log("Chat messages formatted:", chatMessages ? "YES" : "NO");
+    console.log("Chat messages length:", chatMessages?.length || 0);
+    if (chatMessages) {
+      console.log("Chat messages full content:", chatMessages);
+    } else {
+      console.log(
+        "⚠️ WARNING: No chat messages formatted! This means posts won't include user's chat content!"
+      );
+    }
+    console.log("Brief:", briefJson);
+    console.log("System prompt:", systemPrompt);
+
+    // Limit text to avoid token limits
+    const limitedText = pdfText.substring(0, Math.min(pdfText.length, 8000));
+
+    // Build prompt using centralized template
+    const promptTemplate = buildGenerationPromptTemplate();
+    const prompt = PromptTemplate.fromTemplate(promptTemplate);
+
+    // Prepare the full prompt for debugging
+    const promptVariables = {
+      system_prompt: systemPrompt,
+      brief_json: briefJson,
+      chat_messages: chatMessages || "",
+      document_content: limitedText,
+    };
+
+    // Log the FULL prompt being sent to OpenAI
+    console.log("\n=== FULL PROMPT BEING SENT TO OPENAI ===");
+    const fullPrompt = promptTemplate
+      .replace("{system_prompt}", promptVariables.system_prompt)
+      .replace("{chat_messages}", promptVariables.chat_messages)
+      .replace("{brief_json}", promptVariables.brief_json)
+      .replace("{document_content}", promptVariables.document_content);
+    console.log(fullPrompt);
+    console.log("=== END OF FULL PROMPT ===\n");
+
+    const chain = prompt.pipe(llm).pipe(new StringOutputParser());
+
+    const result = await chain.invoke(promptVariables);
+
+    console.log("Generated result preview:", result.substring(0, 500));
+
+    const postsArray = parseGeneratedPosts(result);
+    console.log("OpenAI posts generated:", postsArray.length);
+    return postsArray;
   } catch (error) {
     console.error("Error in generatePostsFromOpenAI:", error);
     throw error;
   }
-}
-
-function createPostPrompt(pdfText: string, filters: FilterState): string {
-  const { executive, department, voice, audience, platform } = filters;
-
-  // Map executive roles to proper titles
-  const executiveTitles: Record<string, string> = {
-    ceo: "Chief Executive Officer",
-    cto: "Chief Technology Officer",
-    cmo: "Chief Marketing Officer",
-    cpo: "Chief Product Officer",
-    cfo: "Chief Financial Officer",
-    coo: "Chief Operating Officer",
-  };
-
-  // Handle optional fields with defaults
-  const executiveRole = executive
-    ? executiveTitles[executive] || executive.toUpperCase()
-    : "Executive";
-  const departmentName = department
-    ? department.charAt(0).toUpperCase() + department.slice(1)
-    : "General";
-  const voiceList =
-    voice && voice.length > 0 ? voice.join(", ") : "Professional";
-  const audienceList =
-    audience && audience.length > 0 ? audience.join(", ") : "General audience";
-  const platformName = platform || "LinkedIn";
-  const primaryTone = voice && voice.length > 0 ? voice[0] : "professional";
-
-  return `
-    As a social media content creator specializing in executive communication, create 5 engaging social media posts using this document as reference:
-
-    DOCUMENT CONTENT (reference for tone and insights):
-    ${pdfText.substring(0, 10000)}...
-
-    EXECUTIVE CONTEXT:
-    - Role: ${executiveRole}
-    - Department: ${departmentName}
-    - Voice: ${voiceList}
-    - Audience: ${audienceList}
-    - Platform: ${platformName}
-
-    FOR EACH POST (create 5 total):
-    1. Make it authentic to the executive's perspective
-    2. Extract 1-2 key insights from the document
-    3. Write in a conversational but professional tone
-    4. Keep it concise (2-4 sentences)
-    5. Include relevant hashtags (3-5 max)
-    6. Make it platform-appropriate for ${platformName}
-
-    RESPONSE FORMAT:
-    Return a JSON object with a "posts" array containing 5 objects:
-    [
-      {
-        "title": "Catchy title for the post",
-        "content": "The actual post content (2-4 sentences)",
-        "hashtags": ["#relevant", "#hashtags"],
-        "tone": "${primaryTone}" // primary tone from selection
-      }
-    ]
-
-    IMPORTANT:
-    - Do not use markdown in the content
-    - Keep sentences short and impactful
-    - Avoid buzzwords and hype
-    - Focus on real insights, not marketing fluff
-  `;
 }
 
 // Post summary

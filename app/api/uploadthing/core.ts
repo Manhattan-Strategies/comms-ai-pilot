@@ -10,6 +10,7 @@ import { fetchAndExtractPdfText } from "@/lib/langchain";
 import {
   generateDynamicPrompt,
   buildGenerationPromptTemplate,
+  formatChatMessages,
 } from "@/utils/prompt-builder";
 import { parseGeneratedPosts } from "@/utils/post-parser";
 
@@ -19,11 +20,12 @@ const f = createUploadthing();
  * Filters (existing)
  */
 const FilterSchema = z.object({
-  executive: z.string().default("ceo"),
-  department: z.string().default("engineering"),
-  voice: z.array(z.string()).default(["clear", "confident", "pragmatic"]),
-  audience: z.array(z.string()).default(["peers", "operators", "partners"]),
-  platform: z.string().default("linkedin"),
+  executive: z.string().optional(),
+  department: z.string().optional(),
+  voice: z.array(z.string()).optional(),
+  audience: z.array(z.string()).optional(),
+  platform: z.string().optional(),
+  selectedExecutive: z.string().optional(),
 });
 
 /**
@@ -55,6 +57,16 @@ const BriefSchema = z
   })
   .strict();
 
+/**
+ * Chat messages schema
+ */
+const ChatMessageSchema = z.array(
+  z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string(),
+  })
+);
+
 export const ourFileRouter = {
   pdfUploader: f({ pdf: { maxFileSize: "32MB" } })
     .input(
@@ -62,6 +74,8 @@ export const ourFileRouter = {
         filters: FilterSchema.optional().default({}),
         // NEW: accept brief from client (generated via chat)
         brief: BriefSchema.optional().nullable(),
+        // NEW: accept messages from client (chat conversation)
+        messages: ChatMessageSchema.optional(),
       })
     )
     .middleware(async ({ input }) => {
@@ -72,6 +86,7 @@ export const ourFileRouter = {
         userId: user.id,
         filters: input.filters,
         brief: input.brief ?? null,
+        messages: input.messages ?? null,
       };
     })
     .onUploadComplete(async ({ metadata, file }) => {
@@ -117,6 +132,41 @@ export const ourFileRouter = {
          */
         const briefJson = JSON.stringify(metadata.brief ?? {}, null, 2);
 
+        // Debug messages BEFORE formatting
+        console.log("=== UploadThing Post Generation Debug ===");
+        console.log("Messages received (raw):", metadata.messages?.length || 0);
+        if (metadata.messages && metadata.messages.length > 0) {
+          console.log(
+            "Messages content (raw):",
+            JSON.stringify(metadata.messages, null, 2)
+          );
+        }
+
+        const chatMessages = formatChatMessages(metadata.messages ?? undefined);
+
+        // Debug after formatting
+        console.log(
+          "Filters received:",
+          JSON.stringify(metadata.filters, null, 2)
+        );
+        console.log("Chat messages formatted:", chatMessages ? "YES" : "NO");
+        console.log("Chat messages length:", chatMessages?.length || 0);
+        if (chatMessages) {
+          console.log("Chat messages full content:", chatMessages);
+        } else {
+          console.log(
+            "⚠️ WARNING: No chat messages formatted! This means posts won't include user's chat content!"
+          );
+        }
+        console.log("Brief received:", metadata.brief);
+        console.log("Brief JSON:", briefJson);
+        if (briefJson === "{}" || briefJson === "null") {
+          console.warn(
+            "⚠️ WARNING: Brief is empty! This means the brief generation may have failed or returned empty."
+          );
+        }
+        console.log("System prompt:", systemPrompt);
+
         // Limit text to avoid token limits
         const limitedText = pdfText.substring(
           0,
@@ -128,14 +178,30 @@ export const ourFileRouter = {
         const promptTemplate = buildGenerationPromptTemplate();
         const prompt = PromptTemplate.fromTemplate(promptTemplate);
 
+        // Prepare the full prompt for debugging
+        const promptVariables = {
+          system_prompt: systemPrompt,
+          brief_json: briefJson,
+          chat_messages: chatMessages || "",
+          document_content: limitedText,
+        };
+
+        // Log the FULL prompt being sent to OpenAI
+        console.log("\n=== FULL PROMPT BEING SENT TO OPENAI ===");
+        const fullPrompt = promptTemplate
+          .replace("{system_prompt}", promptVariables.system_prompt)
+          .replace("{chat_messages}", promptVariables.chat_messages)
+          .replace("{brief_json}", promptVariables.brief_json)
+          .replace("{document_content}", promptVariables.document_content);
+        console.log(fullPrompt);
+        console.log("=== END OF FULL PROMPT ===\n");
+
         console.log("Generating posts with OpenAI...");
         const chain = prompt.pipe(llm).pipe(new StringOutputParser());
 
-        const result = await chain.invoke({
-          system_prompt: systemPrompt,
-          brief_json: briefJson,
-          document_content: limitedText,
-        });
+        const result = await chain.invoke(promptVariables);
+
+        console.log("Generated result preview:", result.substring(0, 500));
 
         console.log("Posts generated successfully");
 

@@ -10,10 +10,14 @@ export async function generatePosts({
   fileUrl,
   fileName,
   filters,
+  brief,
+  messages,
 }: {
   fileUrl: string;
   fileName: string;
   filters: FilterState;
+  brief?: any;
+  messages?: Array<{ role: string; content: string }>;
 }) {
   if (!fileUrl) {
     return {
@@ -42,7 +46,7 @@ export async function generatePosts({
     // Step 2: Try OpenAI first (now for posts, not just summary)
     try {
       console.log("Attempting to generate posts with OpenAI...");
-      posts = await generatePostsFromOpenAI(pdfText, filters);
+      posts = await generatePostsFromOpenAI(pdfText, filters, brief, messages);
       console.log("OpenAI posts generated successfully");
     } catch (openAIError) {
       console.log("OpenAI failed:", openAIError);

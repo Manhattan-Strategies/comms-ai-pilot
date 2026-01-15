@@ -24,8 +24,15 @@ function inferDepartmentFromTitle(title: string): string {
     return "Product";
   if (titleLower.includes("marketing") || titleLower.includes("cmo"))
     return "Marketing";
-  if (titleLower.includes("sales") || titleLower.includes("commercial"))
-    return "Sales";
+  if (
+    titleLower.includes("sales") ||
+    titleLower.includes("commercial") ||
+    titleLower.includes("md") ||
+    titleLower.includes("latin america") ||
+    titleLower.includes("region") ||
+    titleLower.includes("managing director")
+  )
+    return "Sales"; // MD often means Managing Director in sales/regional roles
   if (titleLower.includes("operations") || titleLower.includes("coo"))
     return "Operations";
   if (titleLower.includes("finance") || titleLower.includes("cfo"))
@@ -34,15 +41,13 @@ function inferDepartmentFromTitle(title: string): string {
 }
 
 export type FilterSchema = {
-  executive: string;
-  department: string;
-  voice: string[];
-  audience: string[];
-  platform: string;
+  executive?: string;
+  department?: string;
+  voice?: string[];
+  audience?: string[];
+  platform?: string;
+  selectedExecutive?: string;
 };
-
-// Re-export for convenience
-export type { FilterSchema as FilterState };
 
 /**
  * Extract example posts from PDF text for tone reference
@@ -84,34 +89,35 @@ export function generateDynamicPrompt(
     : null;
 
   // Build executive-specific context if an executive is selected
+  // NOTE: Executive data is for TONE/STYLE only, NOT content direction
   let executiveContext = "";
   if (executive) {
     executiveContext = `
-EXECUTIVE PROFILE:
+EXECUTIVE PROFILE (FOR TONE AND STYLE REFERENCE ONLY):
 Name: ${executive.name}
 Title: ${executive.title}
 Company: ${executive.company}
 
-Executive Positioning & Focus Areas:
-${executive.executivePositioning || "N/A"}
-
 Tone & Style: ${executive.tone || "Professional"}
 
-Frequently Used Words/Phrases (incorporate naturally): ${executive.frequentlyUsedWords || "N/A"}
-
-IMPORTANT: Write in the voice and style of ${executive.name}. Match their tone, incorporate their frequently used words naturally, and align with their positioning themes.
+IMPORTANT: Use ${executive.name}'s tone and style, but the CONTENT and TOPICS must come from the user's chat messages and brief. Executive positioning is secondary to user requirements.
 `;
   }
 
-  const executiveTitle = filters.executive
-    ? getDisplayValue(filters.executive, "executive")
-    : executive
-      ? executive.title
+  // When selectedExecutive is set, use the executive's actual title, not the inferred role
+  // Only use filters.executive if no executive is selected
+  const executiveTitle = executive
+    ? executive.title
+    : filters.executive
+      ? getDisplayValue(filters.executive, "executive")
       : "Executive";
-  const department = filters.department
-    ? getDisplayValue(filters.department, "department")
-    : executive
-      ? inferDepartmentFromTitle(executive.title)
+
+  // When selectedExecutive is set, infer department from executive's title
+  // Only use filters.department if no executive is selected
+  const department = executive
+    ? inferDepartmentFromTitle(executive.title)
+    : filters.department
+      ? getDisplayValue(filters.department, "department")
       : "General";
   const voiceTone =
     filters.voice && filters.voice.length > 0
@@ -130,7 +136,6 @@ IMPORTANT: Write in the voice and style of ${executive.name}. Match their tone, 
   const basePrompt = `You are writing social posts on behalf of an executive.
 
 Executive title: ${executiveTitle}
-Department or function: ${department}
 Voice and tone: ${voiceTone}
 Audience: ${audience}
 Social platform type: ${platform}
@@ -165,6 +170,8 @@ Output:
  */
 export function buildGenerationPromptTemplate(): string {
   return `
+{chat_messages}
+
 {system_prompt}
 
 GENERATION BRIEF (SCOPE AND CONTENT REQUIREMENTS):
@@ -174,9 +181,21 @@ DOCUMENT CONTENT TO USE AS TONE ONLY (DO NOT INTRODUCE NEW FACTS FROM IT):
 {document_content}
 
 YOUR TASK:
-Create EXACTLY 5 social media posts that follow the Generation Brief.
-If the brief is empty and no document is provided, create posts based on general best practices for the specified executive role and platform.
-If a document is provided but the brief is empty, infer reasonable key insights from the document, but avoid specific claims, metrics, customer names, or timelines.
+Create EXACTLY 5 social media posts that directly address the user's chat requirements above.
+
+🚨🚨🚨 STOP AND READ THIS FIRST 🚨🚨🚨
+1. Look at the USER CHAT MESSAGES section above - this is what the posts MUST be about
+2. If the user mentions "Martin Luther King Jr. Day", ALL 5 posts must be about Martin Luther King Jr. Day
+3. If the user mentions any specific topic, ALL 5 posts must address that topic
+4. Do NOT generate generic posts about engineering, company initiatives, or executive positioning if the user specified a different topic
+5. The user's chat messages are MANDATORY - they define WHAT to write about
+6. Executive tone/style is only for HOW to write it, not WHAT to write about
+
+PRIORITY ORDER (MOST IMPORTANT FIRST):
+1. USER CHAT MESSAGES - These define WHAT the posts should be about. The topics, themes, and requirements in the chat messages are MANDATORY and must be the primary focus of all posts.
+2. Generation Brief - Use this to refine scope and add structure to the chat requirements.
+3. Executive tone/style - Use the executive's voice and style, but DO NOT let executive positioning override the user's chat requirements.
+4. Document content - Use only for tone reference, not for introducing new topics.
 
 REQUIREMENTS:
 1. Generate EXACTLY 5 posts
@@ -186,6 +205,9 @@ REQUIREMENTS:
 5. Do not use hashtags, emojis, or markdown
 6. No invented metrics, customer names, timelines, or quotes
 7. Prefer short paragraphs and direct language
+8. MANDATORY: Every post must address the topics and themes from the user's chat messages - this is non-negotiable
+9. If user chat mentions a specific topic (e.g., "Martin Luther King Jr. Day"), ALL posts must relate to that topic in some way
+10. If the user wants posts about a specific holiday, event, or topic, ALL 5 posts must be about that topic
 
 RESPONSE FORMAT:
 Start each post with its number followed by a period and space.
@@ -198,4 +220,76 @@ Example:
 
 DO NOT include any other text in your response.
   `;
+}
+
+/**
+ * Format chat messages for inclusion in prompt
+ */
+export function formatChatMessages(
+  messages: Array<{ role: string; content: string }> | undefined
+): string {
+  console.log(
+    "formatChatMessages called with:",
+    messages?.length || 0,
+    "messages"
+  );
+
+  if (!messages || messages.length === 0) {
+    console.log(
+      "formatChatMessages: No messages provided, returning empty string"
+    );
+    return "";
+  }
+
+  // Filter to only user messages (they contain the actual requirements)
+  const userMessages = messages.filter(
+    (m) => m.role === "user" && m.content.trim().length > 0
+  );
+
+  console.log(
+    "formatChatMessages: Found",
+    userMessages.length,
+    "user messages"
+  );
+  if (userMessages.length > 0) {
+    console.log(
+      "formatChatMessages: User messages content:",
+      userMessages.map((m) => m.content)
+    );
+  }
+
+  if (userMessages.length === 0) {
+    console.log(
+      "formatChatMessages: No user messages found, returning empty string"
+    );
+    return "";
+  }
+
+  const chatContent = userMessages
+    .map((m) => `USER: ${m.content.trim()}`)
+    .join("\n\n");
+
+  const formatted = `CRITICAL: USER CHAT MESSAGES ARE THE PRIMARY CONTENT SOURCE
+
+USER CHAT MESSAGES (MANDATORY - ALL POSTS MUST ADDRESS THESE):
+${chatContent}
+
+⚠️ ABSOLUTE REQUIREMENTS - NON-NEGOTIABLE ⚠️:
+1. EVERY SINGLE POST must address the topics mentioned in the user's chat messages above
+2. If the user mentions "Martin Luther King Jr. Day" or any specific topic, ALL 5 posts must be about that topic
+3. Do NOT generate generic posts about company initiatives, engineering, or executive positioning if the user specified a different topic
+4. The user's chat messages define WHAT to write about - this is the PRIMARY content direction
+5. Executive tone/style is HOW to write it, but the CONTENT must come from the user's chat messages
+6. If you see "Martin Luther King Jr. Day" in the chat, every post must mention or relate to Martin Luther King Jr. Day
+7. Do NOT ignore the user's chat messages and generate generic business posts
+
+EXAMPLE: If user asks for posts about "Martin Luther King Jr. Day", generate 5 posts about Martin Luther King Jr. Day, NOT about engineering or company initiatives.
+
+The user's chat messages are MANDATORY. Everything else (executive style, brief, document) is secondary.`;
+
+  console.log(
+    "formatChatMessages: Returning formatted messages, length:",
+    formatted.length
+  );
+  return formatted;
 }
