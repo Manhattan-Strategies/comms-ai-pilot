@@ -55,7 +55,7 @@ export default function PromptChat({
 
       <div className="mt-3">
         <input
-          className="w-full rounded border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm"
+          className="w-full h-24 rounded border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm"
           placeholder="Describe what you want the posts to cover…"
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -69,9 +69,11 @@ export default function PromptChat({
         />
         <p className="mt-2 text-xs text-muted-foreground text-left">
           Tell me what you want these posts to be about. Include the situation,
-          what you want to emphasize, and what to avoid. Tip: mention the
-          initiative, intended audience reaction, and what you must avoid
-          claiming.
+          what you want to emphasize, and what to avoid.
+        </p>
+        <p className="text-xs text-muted-foreground text-left">
+          Tip: mention the initiative, intended audience reaction, and what you
+          must avoid claiming.
         </p>
       </div>
     </div>

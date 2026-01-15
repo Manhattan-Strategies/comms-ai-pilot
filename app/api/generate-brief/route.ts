@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const llm = new ChatOpenAI({
       modelName: "gpt-5-nano",
       openAIApiKey: process.env.OPENAI_API_KEY,
-      temperature: 0.2,
+      // temperature: 0.2,
     });
 
     const chatTranscript = messages

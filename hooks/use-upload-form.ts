@@ -79,6 +79,7 @@ export function useUploadForm() {
 
   /**
    * Handle form submission
+   * Supports both with and without PDF file
    */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -87,15 +88,17 @@ export function useUploadForm() {
       setIsLoading(true);
 
       const formData = new FormData(e.currentTarget);
-      const file = formData.get("file") as File;
+      const file = formData.get("file") as File | null;
 
-      // Validation
-      const validationResult = uploadFormSchema.safeParse({ file });
-      if (!validationResult.success) {
-        const error = validationResult.error.errors[0];
-        toast.error("Invalid file", { description: error.message });
-        setIsLoading(false);
-        return;
+      // Validate file if provided
+      if (file && file.size > 0) {
+        const validationResult = uploadFormSchema.safeParse({ file });
+        if (!validationResult.success) {
+          const error = validationResult.error.errors[0];
+          toast.error("Invalid file", { description: error.message });
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Generate brief if not already available
@@ -113,10 +116,47 @@ export function useUploadForm() {
         return;
       }
 
-      // Upload and generate
+      // If no file, generate posts directly via API
+      if (!file || file.size === 0) {
+        const response = await fetch("/api/generate-posts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filters,
+            brief: briefToUse,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.posts) {
+          setResult({
+            posts: data.posts,
+            fileName: null,
+            filters: data.filters,
+            success: true,
+          });
+
+          toast.success("Posts Generated!", {
+            description: `Created ${data.posts.length} social media posts`,
+          });
+        } else {
+          setResult({
+            ...result,
+            error: data.error || "Failed to generate posts",
+            success: false,
+          });
+          toast.error("Generation Failed", {
+            description: data.error || "Please try again",
+          });
+        }
+        return;
+      }
+
+      // If file exists, use upload flow
       const uploadResponse = await startUpload([file], {
         filters,
-        brief: brief as GenerationBrief,
+        brief: briefToUse as GenerationBrief,
       });
 
       if (uploadResponse?.[0]?.serverData) {

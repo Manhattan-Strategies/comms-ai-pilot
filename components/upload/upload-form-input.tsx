@@ -20,7 +20,6 @@ const UploadFormInput = forwardRef<HTMLFormElement, UploadFormInputProps>(
             type="file"
             name="file"
             accept="application/pdf"
-            required
             className={cn(isLoading && "opacity-50 cursor-not-allowed")}
             disabled={isLoading}
           />

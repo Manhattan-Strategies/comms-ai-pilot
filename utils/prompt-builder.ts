@@ -72,7 +72,7 @@ Writing guidelines:
 - Write as if sharing real progress, not marketing copy
 
 Content context:
-- Topic is based on the uploaded document
+${pdfText ? "- Topic is based on the uploaded document" : "- Topic is based on the generation brief and chat conversation"}
 - Emphasize real world use, speed to value and operational learning
 - Reference iteration, validation and delivery
 - Keep it grounded and credible
@@ -98,11 +98,12 @@ DOCUMENT CONTENT TO USE AS TONE ONLY (DO NOT INTRODUCE NEW FACTS FROM IT):
 
 YOUR TASK:
 Create EXACTLY 5 social media posts that follow the Generation Brief.
-If the brief is empty, infer reasonable key insights from the document, but avoid specific claims, metrics, customer names, or timelines.
+If the brief is empty and no document is provided, create posts based on general best practices for the specified executive role and platform.
+If a document is provided but the brief is empty, infer reasonable key insights from the document, but avoid specific claims, metrics, customer names, or timelines.
 
 REQUIREMENTS:
 1. Generate EXACTLY 5 posts
-2. Each post should be around 500 words.
+2. Each post should be 2-4 sentences
 3. Professional but conversational
 4. Each post is a complete, standalone message
 5. Do not use hashtags, emojis, or markdown

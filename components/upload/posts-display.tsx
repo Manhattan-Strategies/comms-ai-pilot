@@ -2,8 +2,8 @@
 interface PostsDisplayProps {
   posts: string[];
   filters: any;
-  fileName: string;
-  title: string;
+  fileName: string | null;
+  title?: string;
 }
 
 export function PostsDisplay({
@@ -25,9 +25,11 @@ export function PostsDisplay({
         <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
           Generated Social Posts
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Based on: {fileName}
-        </p>
+        {fileName && (
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Based on: {fileName}
+          </p>
+        )}
       </div>
 
       {/* Filters used */}

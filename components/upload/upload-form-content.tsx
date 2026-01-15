@@ -61,18 +61,6 @@ export default function UploadFormContent({
 
   return (
     <div className="lg:w-2/3">
-      {/* Upload section divider */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center" aria-hidden="true">
-          <div className="w-full border-t border-gray-200 dark:border-gray-800" />
-        </div>
-        <div className="relative flex justify-center">
-          <span className="bg-transparent px-3 text-muted-foreground text-sm">
-            Upload PDF
-          </span>
-        </div>
-      </div>
-
       {/* Prompt chat */}
       <PromptChat
         filters={filters}
@@ -80,6 +68,14 @@ export default function UploadFormContent({
         messages={messages}
         onMessagesChange={handleMessagesChange}
       />
+      {/* Upload section divider */}
+      <div className="mt-8 relative">
+        <div className="relative flex justify-center">
+          <span className="bg-transparent px-3 text-muted-foreground text-sm">
+            Optional: Upload Supporting PDF
+          </span>
+        </div>
+      </div>
 
       {/* Upload form input */}
       <div className="mt-8">

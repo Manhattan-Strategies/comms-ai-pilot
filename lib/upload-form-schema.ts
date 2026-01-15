@@ -2,6 +2,7 @@ import { z } from "zod";
 
 /**
  * Validation schema for PDF upload form
+ * File is optional - users can generate posts from chat prompt alone
  */
 export const uploadFormSchema = z.object({
   file: z
@@ -13,5 +14,7 @@ export const uploadFormSchema = z.object({
     .refine(
       (file) => file.type.startsWith("application/pdf"),
       "File must be a PDF"
-    ),
+    )
+    .optional()
+    .nullable(),
 });
