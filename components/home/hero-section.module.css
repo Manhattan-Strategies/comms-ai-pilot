@@ -108,8 +108,10 @@
 }
 .ctaButton:hover {
   background: linear-gradient(90deg, #3b82f6, #0f172a);
+  color: rgba(37, 99, 235, 1);
   transform: translateY(-1px);
   text-decoration: none;
+  border-color: #3b82f6;
 }
 
 .ctaLink {

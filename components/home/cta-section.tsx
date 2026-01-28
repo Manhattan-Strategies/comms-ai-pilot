@@ -15,7 +15,7 @@ export default function CTASection() {
           </div>
 
           <div className={styles.actions}>
-            <Button size={"lg"} variant={"link"} className={styles.ctaButton}>
+            <Button size={"lg"} variant={"default"} className={styles.ctaButton}>
               <Link href="/sign-in" className={styles.ctaLink}>
                 Get Started{" "}
                 <ArrowRight className={cn(styles.ctaIcon, "icon icon--sm icon--pulse")} />

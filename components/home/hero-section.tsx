@@ -39,7 +39,7 @@ export default function Hebluection() {
           variant={"secondary"}
           className={cn("gradientPillInner", styles.pillInner)}
         >
-          <Sparkles className="icon icon--lg icon--pulse" />
+          {/* <Sparkles className="icon icon--lg icon--pulse" /> */}
           <p className={styles.pillText}>Powered by AI</p>
         </Badge>
       </MotionDiv>
@@ -73,7 +73,7 @@ export default function Hebluection() {
       {/* Button */}
       <MotionDiv variants={itemVariants}>
         <Button
-          variant={"link"}
+          variant={"default"}
           className={styles.ctaButton}
         >
           <Link href="/upload" className={styles.ctaLink}>

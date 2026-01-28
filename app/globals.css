@@ -395,6 +395,19 @@ h3 {
 /* Keep compatibility with older shadcn 'default' naming */
 .btn--default {
   /* .btn already defines the default primary style */
+  background: inherit;
+}
+
+/* App-specific primary (blue) button style (e.g. "Generate Social Posts") */
+.btn--primary {
+  background: rgba(37, 99, 235, 1);
+  color: #fff;
+  border-color: transparent;
+}
+.btn--primary:hover:not(:disabled) {
+  background: #fff;
+  color: rgba(37, 99, 235, 1);
+  border-color: rgba(37, 99, 235, 1);
 }
 
 .btn--sm {

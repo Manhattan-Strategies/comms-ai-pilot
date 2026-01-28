@@ -24,14 +24,14 @@ const UploadFormInput = forwardRef<HTMLFormElement, UploadFormInputProps>(
             className={cn(isLoading && "isDisabled")}
             disabled={isLoading}
           />
-          <Button disabled={isLoading}>
+          <Button className="btn--primary" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className={cn("icon icon--sm icon--spin", styles.loader)} />
                 Processing...
               </>
             ) : (
-              "Generate Social Posts"
+              "Generate"
             )}
           </Button>
         </div>

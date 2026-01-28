@@ -16,7 +16,7 @@ export default function UploadHeader() {
           variant="secondary"
           className={cn("gradientPillInner", styles.pillInner)}
         >
-          <Sparkles className="icon icon--lg icon--pulse" />
+          {/* <Sparkles className="icon icon--lg icon--pulse" /> */}
           <p className={styles.pillText}>AI-Powered Content Creation</p>
         </Badge>
       </MotionDiv>
