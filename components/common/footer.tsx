@@ -1,3 +1,7 @@
 export default function Footer() {
-  return <footer className="bg-gray-50 py-12">Footer</footer>;
+  return (
+    <footer className="appFooter">
+      <div className="container appFooter__inner">Footer</div>
+    </footer>
+  );
 }

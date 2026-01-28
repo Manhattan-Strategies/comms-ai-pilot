@@ -1,0 +1,35 @@
+.wrapper {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -10rem;
+  z-index: -10;
+  transform: translateZ(0);
+  overflow: hidden;
+  filter: blur(64px);
+}
+
+@media (min-width: 640px) {
+  .wrapper {
+    top: -7.5rem;
+  }
+}
+
+.shape {
+  position: relative;
+  left: calc(50% - 11rem);
+  width: 36.125rem;
+  aspect-ratio: 1155 / 678;
+  transform: translateX(-50%) rotate(30deg);
+  background: linear-gradient(135deg, #10b981, #14b8a6, #06b6d4);
+  opacity: 0.2;
+}
+
+@media (min-width: 640px) {
+  .shape {
+    left: calc(50% - 30rem);
+    width: 72rem;
+  }
+}
+

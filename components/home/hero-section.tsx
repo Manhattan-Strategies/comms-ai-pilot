@@ -10,6 +10,8 @@ import {
   MotionSpan,
 } from "../common/motion-wrapper";
 import { containerVariants, itemVariants } from "@/utils/constants";
+import { cn } from "@/lib/utils";
+import styles from "./hero-section.module.css";
 
 const hoverAnimation = {
   scale: 1.05,
@@ -26,34 +28,34 @@ export default function Hebluection() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="relative mx-auto flex flex-col z-0 items-center justify-center py-16 sm:py-20 lg:pb-28 transition-all animate-in lg:px-12 max-w-7xl"
+      className={styles.root}
     >
       {/* Badge */}
       <MotionDiv
         variants={itemVariants}
-        className="relative p-px overflow-hidden rounded-full bg-linear-to-r from-blue-200 via-blue-500 to-blue-800 animate-gradient-x group"
+        className={cn("gradientPillBorder animateGradientX")}
       >
         <Badge
           variant={"secondary"}
-          className="relative px-6 py-2 text-base font-medium bg-white rounded-full group-hover:bg-gray-50 transition-colors duration-200"
+          className={cn("gradientPillInner", styles.pillInner)}
         >
-          <Sparkles className="h-6 w-6 mr-1 min-w-[28px] min-h-[28px] text-blue-600 animate-pulse" />
-          <p className="text-base text-blue-600">Powered by AI</p>
+          <Sparkles className="icon icon--lg icon--pulse" />
+          <p className={styles.pillText}>Powered by AI</p>
         </Badge>
       </MotionDiv>
 
       {/* Title */}
-      <MotionH1 variants={itemVariants} className="font-bold py-6 text-center">
+      <MotionH1 variants={itemVariants} className={styles.title}>
         Transform ideas into{" "}
-        <span className="relative inline-block">
+        <span className={styles.highlightWord}>
           <MotionSpan
             whileHover={hoverAnimation}
-            className="relative z-10 px-2"
+            className={styles.highlightWordText}
           >
             real
           </MotionSpan>
           <span
-            className="absolute inset-0 bg-blue-200/50 -rotate-2 rounded-lg transform -skew-y-1"
+            className={styles.highlightBackdrop}
             aria-hidden="true"
           ></span>
         </span>{" "}
@@ -63,7 +65,7 @@ export default function Hebluection() {
       {/* Description */}
       <MotionH2
         variants={itemVariants}
-        className="text-lg sm:text-xl lg:text-2xl text-center px-4 lg:px-0 lg:max-w-4xl text-gray-600"
+        className={styles.description}
       >
         Get a comprehensive list of social posts in seconds.
       </MotionH2>
@@ -72,11 +74,11 @@ export default function Hebluection() {
       <MotionDiv variants={itemVariants}>
         <Button
           variant={"link"}
-          className="text-white mt-6 text-base sm:text-lg lg:text-xl rounded-full px-8 sm:px-10 lg:px-12 py-6 sm:py-7 lg:py-8 lg:mt-16 bg-linear-to-r from-slate-900 to-blue-500 hover:from-blue-500 hover:to-slate-900 hover:no-underline font-bold shadow-lg transition-all duration-300"
+          className={styles.ctaButton}
         >
-          <Link href="/upload" className="flex gap-2 items-center">
+          <Link href="/upload" className={styles.ctaLink}>
             <span>Try AI Pilot</span>
-            <ArrowRight className="animate-pulse" />
+            <ArrowRight className="icon icon--md icon--pulse" />
           </Link>
         </Button>
       </MotionDiv>

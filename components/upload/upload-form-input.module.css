@@ -1,0 +1,11 @@
+.formRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.loader {
+  margin-right: 0.5rem;
+}
+

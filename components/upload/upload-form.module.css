@@ -1,0 +1,41 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  max-width: 72rem; /* ~max-w-6xl */
+  margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    flex-direction: row;
+  }
+}
+
+.content {
+  width: 100%;
+}
+
+.sidebar {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .content {
+    width: 66.6667%;
+  }
+  .sidebar {
+    width: 33.3333%;
+  }
+}
+
+.sidebarSticky {
+  position: sticky;
+  top: 6rem; /* similar to top-24 */
+}
+
+.topSpacingLg {
+  margin-top: 2rem;
+}
+

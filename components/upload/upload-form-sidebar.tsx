@@ -1,6 +1,7 @@
 import FilterControls from "./filter-control";
 import ActiveFiltersSummary from "./active-filters-summary";
 import type { FilterState } from "@/types/filters";
+import styles from "./upload-form.module.css";
 
 /**
  * Sidebar component containing filter controls and active settings summary
@@ -15,8 +16,8 @@ export default function UploadFormSidebar({
   onFiltersChange,
 }: UploadFormSidebarProps) {
   return (
-    <div className="lg:w-1/3">
-      <div className="sticky top-24">
+    <div className={styles.sidebar}>
+      <div className={styles.sidebarSticky}>
         <FilterControls filters={filters} onFiltersChange={onFiltersChange} />
         <ActiveFiltersSummary filters={filters} />
       </div>

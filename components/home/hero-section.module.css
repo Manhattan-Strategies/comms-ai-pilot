@@ -1,0 +1,120 @@
+.root {
+  position: relative;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 4rem 1.5rem 3.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 0;
+}
+
+@media (min-width: 640px) {
+  .root {
+    padding-top: 5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .root {
+    padding-left: 3rem;
+    padding-right: 3rem;
+    padding-bottom: 7rem;
+  }
+}
+
+.pillInner {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  gap: 0.5rem;
+}
+
+.pillText {
+  font-size: 1rem;
+  color: rgba(37, 99, 235, 1);
+}
+
+.title {
+  font-weight: 800;
+  padding: 1.5rem 0;
+  margin: 0;
+}
+
+.highlightWord {
+  position: relative;
+  display: inline-block;
+}
+.highlightWordText {
+  position: relative;
+  z-index: 1;
+  padding: 0 0.5rem;
+}
+.highlightBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(191, 219, 254, 0.5);
+  transform: rotate(-2deg) skewY(-1deg);
+  border-radius: 0.5rem;
+}
+
+.description {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  color: rgba(75, 85, 99, 1);
+  max-width: 56rem;
+  padding: 0 1rem;
+}
+@media (min-width: 640px) {
+  .description {
+    font-size: 1.25rem;
+  }
+}
+@media (min-width: 1024px) {
+  .description {
+    font-size: 1.5rem;
+    padding: 0;
+  }
+}
+
+.ctaButton {
+  margin-top: 1.5rem;
+  border-radius: 999px;
+  padding: 1.25rem 2rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(90deg, #0f172a, #3b82f6);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+  transition: background 250ms ease, transform 150ms ease;
+}
+@media (min-width: 640px) {
+  .ctaButton {
+    font-size: 1.125rem;
+    padding: 1.35rem 2.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .ctaButton {
+    font-size: 1.25rem;
+    padding: 1.5rem 3rem;
+    margin-top: 4rem;
+  }
+}
+.ctaButton:hover {
+  background: linear-gradient(90deg, #3b82f6, #0f172a);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.ctaLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+

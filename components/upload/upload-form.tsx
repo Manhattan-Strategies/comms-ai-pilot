@@ -4,6 +4,7 @@
 import { useUploadForm } from "@/hooks/use-upload-form";
 import UploadFormContent from "./upload-form-content";
 import UploadFormSidebar from "./upload-form-sidebar";
+import styles from "./upload-form.module.css";
 
 /**
  * Main upload form component
@@ -23,7 +24,7 @@ export default function UploadForm() {
   } = useUploadForm();
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 w-full max-w-6xl mx-auto">
+    <div className={styles.layout}>
       {/* Left column - Upload form content */}
       <UploadFormContent
         isLoading={isLoading}

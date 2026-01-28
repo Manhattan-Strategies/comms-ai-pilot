@@ -26,10 +26,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`${fontSans.variable} antialiased`}>
-          <div className="relative flex min-h-screen flex-col">
+        <body className={fontSans.variable}>
+          <div className="appShell">
             <Header />
-            <main className="flex-1">{children}</main>
+            <main className="appMain">{children}</main>
             <Footer />
           </div>
           <Toaster />

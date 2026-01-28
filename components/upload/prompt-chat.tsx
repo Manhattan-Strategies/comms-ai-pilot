@@ -11,6 +11,8 @@ import {
 import type { FilterState } from "@/types/filters";
 import type { GenerationBrief } from "@/types/generation";
 import UploadFormInput from "./upload-form-input";
+import { cn } from "@/lib/utils";
+import styles from "./prompt-chat.module.css";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -35,15 +37,7 @@ interface PromptChatProps {
 
 const PromptChat = forwardRef<PromptChatHandle, PromptChatProps>(
   (
-    {
-      filters,
-      brief,
-      messages,
-      onMessagesChange,
-      isLoading,
-      prevIsLoading,
-      onSubmit,
-    },
+    { brief, messages, onMessagesChange, isLoading, prevIsLoading, onSubmit },
     ref
   ) => {
     const [input, setInput] = useState("");
@@ -86,30 +80,15 @@ const PromptChat = forwardRef<PromptChatHandle, PromptChatProps>(
     }
 
     return (
-      <div className="rounded-lg border border-gray-200 dark:border-gray-800 p-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-medium text-2xl">Assistant Chat</h3>
-          <span className="text-xs text-muted-foreground">{statusLabel}</span>
+      <div className={cn("card card--paddedMd", "textLeft")}>
+        <div className={styles.header}>
+          <h3 className={styles.title}>Assistant Chat</h3>
+          <span className={styles.status}>{statusLabel}</span>
         </div>
 
-        {/* <div className="mt-3 max-h-64 overflow-auto space-y-3 text-sm">
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className={
-              m.role === "user"
-                ? "ml-auto w-[90%] rounded bg-gray-100 dark:bg-gray-800 p-2"
-                : "mr-auto w-[90%] rounded bg-white dark:bg-black/20 p-2 border border-gray-200 dark:border-gray-800"
-            }
-          >
-            <div>{m.content}</div>
-          </div>
-        ))}
-      </div> */}
-
-        <div className="mt-3">
+        <div className={styles.body}>
           <textarea
-            className="w-full min-h-24 rounded border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm resize-y"
+            className="textarea"
             placeholder="Describe what you want the posts to cover…"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -123,11 +102,11 @@ const PromptChat = forwardRef<PromptChatHandle, PromptChatProps>(
             }}
             rows={4}
           />
-          <p className="mt-2 text-xs text-muted-foreground text-left">
+          <p className={styles.helperText}>
             Tell me what you want these posts to be about. Include the
             situation, what you want to emphasize, and what to avoid.
           </p>
-          <p className="text-xs text-muted-foreground text-left">
+          <p className={styles.helperText}>
             Tip: mention the initiative, intended audience reaction, and what
             you must avoid claiming.
           </p>
@@ -136,15 +115,11 @@ const PromptChat = forwardRef<PromptChatHandle, PromptChatProps>(
         {/* Upload section */}
         {onSubmit && (
           <>
-            <div className="mt-6 relative">
-              <div className="relative flex justify-center">
-                <span className="bg-transparent px-3 text-muted-foreground text-sm">
-                  Optional: Upload Supporting PDF
-                </span>
+            <div className={styles.uploadSection}>
+              <div className="divider divider--center">
+                <span className="divider__label">Optional: Upload Supporting PDF</span>
               </div>
-            </div>
 
-            <div className="mt-4">
               <UploadFormInput
                 isLoading={isLoading || false}
                 ref={formRef}

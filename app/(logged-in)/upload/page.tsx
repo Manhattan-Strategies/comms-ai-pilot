@@ -14,7 +14,7 @@ export default async function UploadPage() {
     redirect("/sign-in");
   }
 
-  const userId = user.id;
+  // const userId = user.id;
   //   const { hasReachedLimit } = await hasReachedUploadLimit(userId);
 
   //   if (hasReachedLimit) {
@@ -22,15 +22,15 @@ export default async function UploadPage() {
   //   }
 
   return (
-    <section className="min-h-screen">
+    <section className="section">
       <BgGradient />
       <MotionDiv
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8"
+        className="sectionInner sectionInner--wide"
       >
-        <div className="flex flex-col items-center justify-center gap-6 text-center">
+        <div className="stack stack--gapLg centerStack">
           <UploadHeader />
           <UploadForm />
         </div>

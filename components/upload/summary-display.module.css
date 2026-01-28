@@ -1,0 +1,21 @@
+.title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+
+.summaryText {
+  white-space: pre-line;
+}
+
+.footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.footerMessage {
+  margin: 0;
+  font-size: 0.875rem;
+}
+

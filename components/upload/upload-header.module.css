@@ -1,0 +1,67 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.pillInner {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  gap: 0.5rem;
+}
+
+.pillText {
+  font-size: 1rem;
+  color: rgba(37, 99, 235, 1);
+}
+
+.title {
+  text-transform: capitalize;
+  font-size: 1.875rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: rgba(17, 24, 39, 1);
+}
+.dark .title {
+  color: rgba(243, 244, 246, 1);
+}
+
+@media (min-width: 640px) {
+  .title {
+    font-size: 2.25rem;
+  }
+}
+
+.highlightWord {
+  position: relative;
+  display: inline-block;
+}
+
+.highlightWordText {
+  position: relative;
+  z-index: 1;
+  padding: 0 0.5rem;
+}
+
+.highlightBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(191, 219, 254, 0.5);
+  transform: rotate(-2deg) skewY(-1deg);
+  border-radius: 0.5rem;
+}
+
+.subtitle {
+  margin-top: 0.5rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  color: rgba(75, 85, 99, 1);
+  max-width: 42rem;
+}
+

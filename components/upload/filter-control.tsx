@@ -2,6 +2,8 @@
 
 import { FilterState } from "@/types/filters";
 import { getActiveExecutives, getExecutiveBySlug } from "@/lib/executive-data";
+import { cn } from "@/lib/utils";
+import styles from "./filter-control.module.css";
 
 interface FilterControlsProps {
   filters: FilterState;
@@ -159,21 +161,17 @@ export default function FilterControls({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-        Content Style Settings
-      </h3>
+    <div className={cn("card card--paddedMd", styles.root)}>
+      <h3 className={styles.title}>Content Style Settings</h3>
 
-      <div className="space-y-6">
+      <div className={styles.group}>
         {/* Executive Selector */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Select Executive (Optional)
-          </label>
+          <label className={styles.label}>Select Executive (Optional)</label>
           <select
             value={filters.selectedExecutive || ""}
             onChange={(e) => handleExecutiveChange(e.target.value || undefined)}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={styles.select}
           >
             <option value="">None - Use generic executive role</option>
             {executives.map((exec) => (
@@ -183,7 +181,7 @@ export default function FilterControls({
             ))}
           </select>
           {filters.selectedExecutive && (
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p className={styles.hint}>
               Selected:{" "}
               {
                 executives.find((e) => e.slug === filters.selectedExecutive)
@@ -196,23 +194,17 @@ export default function FilterControls({
         {/* Executive Title - Only show when no executive is selected */}
         {showManualFields && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Executive Title
-            </label>
-            <div className="grid grid-cols-2 gap-2">
+            <label className={styles.label}>Executive Title</label>
+            <div className={styles.grid2}>
               {filterOptions.executive.map((option) => (
                 <button
                   key={option.id}
                   type="button"
                   onClick={() => updateFilter("executive", option.id)}
-                  className={`
-                    px-3 py-2 text-sm rounded-lg transition-colors
-                    ${
-                      filters.executive === option.id
-                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 border border-transparent"
-                    }
-                  `}
+                  className={cn(
+                    styles.chip,
+                    filters.executive === option.id && styles.chipActive
+                  )}
                 >
                   {option.label}
                 </button>
@@ -224,23 +216,17 @@ export default function FilterControls({
         {/* Department - Only show when no executive is selected */}
         {showManualFields && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Department
-            </label>
-            <div className="grid grid-cols-2 gap-2">
+            <label className={styles.label}>Department</label>
+            <div className={styles.grid2}>
               {filterOptions.department.map((option) => (
                 <button
                   key={option.id}
                   type="button"
                   onClick={() => updateFilter("department", option.id)}
-                  className={`
-                    px-3 py-2 text-sm rounded-lg transition-colors
-                    ${
-                      filters.department === option.id
-                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 border border-transparent"
-                    }
-                  `}
+                  className={cn(
+                    styles.chip,
+                    filters.department === option.id && styles.chipActive
+                  )}
                 >
                   {option.label}
                 </button>
@@ -252,27 +238,22 @@ export default function FilterControls({
         {/* Voice & Tone - Only show when no executive is selected */}
         {showManualFields && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Voice & Tone
-            </label>
-            <div className="grid grid-cols-2 gap-2">
+            <label className={styles.label}>Voice &amp; Tone</label>
+            <div className={styles.grid2}>
               {filterOptions.voice.map((option) => (
                 <button
                   key={option.id}
                   type="button"
                   onClick={() => toggleMultiFilter("voice", option.id)}
-                  className={`
-                    px-3 py-2 text-sm rounded-lg transition-colors flex items-center justify-between
-                    ${
-                      (filters.voice || []).includes(option.id)
-                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 border border-transparent"
-                    }
-                  `}
+                  className={cn(
+                    styles.chip,
+                    styles.chipMulti,
+                    (filters.voice || []).includes(option.id) && styles.chipActive
+                  )}
                 >
                   {option.label}
                   {(filters.voice || []).includes(option.id) && (
-                    <span className="text-blue-600 dark:text-blue-400">✓</span>
+                    <span className={styles.chipCheck}>✓</span>
                   )}
                 </button>
               ))}
@@ -282,27 +263,22 @@ export default function FilterControls({
 
         {/* Audience (Multiple) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Audience
-          </label>
-          <div className="grid grid-cols-2 gap-2">
+          <label className={styles.label}>Audience</label>
+          <div className={styles.grid2}>
             {filterOptions.audience.map((option) => (
               <button
                 key={option.id}
                 type="button"
                 onClick={() => toggleMultiFilter("audience", option.id)}
-                className={`
-                  px-3 py-2 text-sm rounded-lg transition-colors flex items-center justify-between
-                  ${
-                    (filters.audience || []).includes(option.id)
-                      ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 border border-transparent"
-                  }
-                `}
+                className={cn(
+                  styles.chip,
+                  styles.chipMulti,
+                  (filters.audience || []).includes(option.id) && styles.chipActive
+                )}
               >
                 {option.label}
                 {(filters.audience || []).includes(option.id) && (
-                  <span className="text-blue-600 dark:text-blue-400">✓</span>
+                  <span className={styles.chipCheck}>✓</span>
                 )}
               </button>
             ))}
@@ -311,23 +287,17 @@ export default function FilterControls({
 
         {/* Platform */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Social Platform
-          </label>
-          <div className="grid grid-cols-2 gap-2">
+          <label className={styles.label}>Social Platform</label>
+          <div className={styles.grid2}>
             {filterOptions.platform.map((option) => (
               <button
                 key={option.id}
                 type="button"
                 onClick={() => updateFilter("platform", option.id)}
-                className={`
-                  px-3 py-2 text-sm rounded-lg transition-colors
-                  ${
-                    filters.platform === option.id
-                      ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 border border-transparent"
-                  }
-                `}
+                className={cn(
+                  styles.chip,
+                  filters.platform === option.id && styles.chipActive
+                )}
               >
                 {option.label}
               </button>

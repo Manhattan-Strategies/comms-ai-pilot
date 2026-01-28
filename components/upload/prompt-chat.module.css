@@ -1,0 +1,32 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.status {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.body {
+  margin-top: 0.75rem;
+}
+
+.helperText {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.uploadSection {
+  margin-top: 1.5rem;
+}
+

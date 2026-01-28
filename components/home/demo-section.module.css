@@ -1,0 +1,94 @@
+.section {
+  position: relative;
+}
+
+.decorWrapper {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -10rem;
+  z-index: -10;
+  overflow: hidden;
+  filter: blur(64px);
+}
+
+.decorShape {
+  position: relative;
+  left: calc(50% + 3rem);
+  width: 36.125rem;
+  aspect-ratio: 1155 / 678;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #10b981, #14b8a6, #06b6d4);
+  opacity: 0.3;
+}
+@media (min-width: 640px) {
+  .decorShape {
+    left: calc(50% + 36rem);
+    width: 72.1875rem;
+  }
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+}
+
+.iconTile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  background: rgba(243, 244, 246, 0.8);
+  border: 1px solid rgba(107, 114, 128, 0.2);
+  margin-bottom: 1rem;
+}
+.dark .iconTile {
+  background: rgba(31, 41, 55, 0.6);
+  border-color: rgba(107, 114, 128, 0.35);
+}
+
+.pizzaIcon {
+  color: rgba(59, 130, 246, 1);
+}
+
+.headlineWrap {
+  margin-bottom: 4rem;
+}
+
+.headline {
+  margin: 0 auto;
+  max-width: 42rem;
+  padding: 0 1rem;
+  font-weight: 800;
+  font-size: 1.875rem;
+}
+
+.gradientText {
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.viewerWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.5rem;
+}
+@media (min-width: 640px) {
+  .viewerWrap {
+    padding: 0 1rem;
+  }
+}
+@media (min-width: 1024px) {
+  .viewerWrap {
+    padding: 0 1.5rem;
+  }
+}
+

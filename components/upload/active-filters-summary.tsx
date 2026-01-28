@@ -1,5 +1,7 @@
 import type { FilterState } from "@/types/filters";
 import { getExecutiveBySlug } from "@/lib/executive-data";
+import { cn } from "@/lib/utils";
+import styles from "./active-filters-summary.module.css";
 
 /**
  * Component displaying a summary of active filter settings
@@ -16,59 +18,43 @@ export default function ActiveFiltersSummary({
     : null;
 
   return (
-    <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-      <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-        Active Settings
-      </h4>
-      <div className="space-y-2 text-sm">
+    <div className={cn("card card--paddedMd card--soft", styles.root)}>
+      <h4 className={styles.title}>Active Settings</h4>
+      <div className={styles.items}>
         {selectedExecutive ? (
           <>
-            <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-gray-600 dark:text-gray-400">Executive:</span>
-              <span className="font-medium text-gray-900 dark:text-gray-100">
-                {selectedExecutive.name}
-              </span>
+            <div className={cn(styles.row, styles.section, styles["section--none"])}>
+              <span className={styles.label}>Executive:</span>
+              <span className={styles.value}>{selectedExecutive.name}</span>
             </div>
-            <div className="flex items-start justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Title:</span>
-              <span className="font-medium text-gray-900 dark:text-gray-100 text-xs text-right ml-2">
+            <div className={cn(styles.row, styles.rowTop)}>
+              <span className={styles.label}>Title:</span>
+              <span className={cn(styles.value, styles.valueSmall)}>
                 {selectedExecutive.title}
               </span>
             </div>
             {selectedExecutive.tone && (
-              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                <div className="mb-1.5">
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    Tone & Style:
-                  </span>
-                </div>
-                <p className="text-xs text-gray-700 dark:text-gray-300 italic leading-relaxed">
+              <div className={styles.section}>
+                <span className={styles.sectionLabel}>Tone &amp; Style:</span>
+                <p className={cn(styles.sectionText, styles.sectionTextItalic)}>
                   {selectedExecutive.tone}
                 </p>
               </div>
             )}
             {selectedExecutive.otherNotes && selectedExecutive.otherNotes.trim() && (
-              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                <div className="mb-1.5">
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    Notes:
-                  </span>
-                </div>
+              <div className={styles.section}>
+                <span className={styles.sectionLabel}>Notes:</span>
                 <div
-                  className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:ml-4 [&_ul]:ml-4 [&_li]:mb-1 [&_strong]:font-semibold [&_p]:mb-2"
+                  className={cn(styles.sectionText, styles.richText)}
                   dangerouslySetInnerHTML={{ __html: selectedExecutive.otherNotes }}
                 />
               </div>
             )}
             {selectedExecutive.executivePositioning && selectedExecutive.executivePositioning.trim() && (
-              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                <div className="mb-1.5">
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    Positioning:
-                  </span>
-                </div>
+              <div className={styles.section}>
+                <span className={styles.sectionLabel}>Positioning:</span>
                 <div
-                  className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:ml-4 [&_ul]:ml-4 [&_li]:mb-1 [&_strong]:font-semibold [&_p]:mb-2"
+                  className={cn(styles.sectionText, styles.richText)}
                   dangerouslySetInnerHTML={{ __html: selectedExecutive.executivePositioning }}
                 />
               </div>
@@ -77,43 +63,33 @@ export default function ActiveFiltersSummary({
         ) : (
           <>
             {filters.executive && (
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Role:</span>
-                <span className="font-medium text-gray-900 dark:text-gray-100">
-                  {filters.executive.toUpperCase()}
-                </span>
+              <div className={styles.row}>
+                <span className={styles.label}>Role:</span>
+                <span className={styles.value}>{filters.executive.toUpperCase()}</span>
               </div>
             )}
             {filters.department && (
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Department:</span>
-                <span className="font-medium text-gray-900 dark:text-gray-100 capitalize">
-                  {filters.department}
-                </span>
+              <div className={styles.row}>
+                <span className={styles.label}>Department:</span>
+                <span className={styles.value}>{filters.department}</span>
               </div>
             )}
           </>
         )}
         {filters.platform && (
-          <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Platform:</span>
-            <span className="font-medium text-gray-900 dark:text-gray-100 capitalize">
-              {filters.platform.replace("_", " ")}
-            </span>
+          <div className={styles.row}>
+            <span className={styles.label}>Platform:</span>
+            <span className={styles.value}>{filters.platform.replace("_", " ")}</span>
           </div>
         )}
         {filters.audience && filters.audience.length > 0 && (
-          <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Audience:</span>
-            <span className="font-medium text-gray-900 dark:text-gray-100 capitalize">
-              {filters.audience.join(", ")}
-            </span>
+          <div className={styles.row}>
+            <span className={styles.label}>Audience:</span>
+            <span className={styles.value}>{filters.audience.join(", ")}</span>
           </div>
         )}
-        <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            These settings are applied during post generation
-          </p>
+        <div className={styles.section}>
+          <p className={styles.footnote}>These settings are applied during post generation</p>
         </div>
       </div>
     </div>

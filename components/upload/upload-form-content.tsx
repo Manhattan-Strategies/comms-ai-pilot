@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import PromptChat, { type PromptChatHandle } from "./prompt-chat";
 import { PostsDisplay } from "./posts-display";
 import UploadFormLoading from "./upload-form-loading";
@@ -6,16 +6,17 @@ import UploadFormError from "./upload-form-error";
 import type { FilterState } from "@/types/filters";
 import type { GenerationBrief } from "@/types/generation";
 import type { ChatMessage } from "./prompt-chat";
+import styles from "./upload-form.module.css";
 
 /**
  * Hook to track previous value
  */
 function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T | undefined>(undefined);
+  const [prev, setPrev] = useState<T | undefined>(undefined);
   useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
+    setPrev(value);
+  }, [value]);
+  return prev;
 }
 
 /**
@@ -61,7 +62,7 @@ export default function UploadFormContent({
   // Note: Form reset is now handled within the PromptChat component
 
   return (
-    <div className="lg:w-2/3">
+    <div className={styles.content}>
       {/* Prompt chat */}
       <PromptChat
         ref={promptChatRef}
@@ -77,7 +78,7 @@ export default function UploadFormContent({
       {/* Display generated posts */}
       {/* Use current filters, not stale result.filters */}
       {result && result.posts && (
-        <div className="mt-8">
+        <div className={styles.topSpacingLg}>
           <PostsDisplay
             posts={result.posts}
             filters={filters}

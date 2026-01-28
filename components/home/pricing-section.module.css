@@ -1,0 +1,154 @@
+.section {
+  position: relative;
+  overflow: hidden;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 3rem;
+}
+
+.headerTitle {
+  margin: 0 0 2rem;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(59, 130, 246, 1);
+}
+
+.plans {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+@media (min-width: 1024px) {
+  .plans {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+  }
+}
+
+.cardWrap {
+  position: relative;
+  width: 100%;
+  max-width: 32rem;
+  transition: transform 250ms ease;
+}
+.cardWrap:hover {
+  transform: scale(1.02);
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  border: 1px solid rgba(107, 114, 128, 0.2);
+  border-radius: 1rem;
+}
+
+.cardPro {
+  border-color: rgba(59, 130, 246, 1);
+  border-width: 2px;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.name {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+@media (min-width: 1024px) {
+  .name {
+    font-size: 1.25rem;
+  }
+}
+
+.description {
+  margin: 0.5rem 0 0;
+  color: rgba(107, 114, 128, 1);
+}
+
+.priceRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.price {
+  margin: 0;
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.perMonth {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+  font-size: 0.75rem;
+  color: rgba(107, 114, 128, 1);
+}
+.perMonth p {
+  margin: 0;
+}
+
+.features {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  flex: 1;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ctaRow {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.buyLink {
+  width: 100%;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border: 2px solid rgba(219, 234, 254, 1);
+  background: linear-gradient(90deg, #1e40af, #3b82f6);
+  transition: background 250ms ease, border-color 250ms ease;
+}
+.buyLink:hover {
+  background: linear-gradient(90deg, #3b82f6, #1e40af);
+}
+
+.buyLinkPro {
+  border-color: rgba(30, 58, 138, 1);
+}
+
